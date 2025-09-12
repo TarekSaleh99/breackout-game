@@ -1,12 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Breackout Game</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brickout Game</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    
+<body style="background: url('Assets/candy-crush-saga-background-a8jkcqn32lawvzeo.jpg') no-repeat center center; background-size: cover;">
+  <div class="scores">
+    <span>Score <span id="score">0</span></span>
+    <span>Lives <span id="lives">3</span></span>
+    <span>Highest Score <span id="highScore">0</span></span>
+  </div>
+  <canvas id="gameCanvas" width=100%></canvas>
+  <div class="controls">
+    <button id="startBtn">Start</button>
+    <button id="pauseBtn">Pause</button>
+    <button id="restartBtn">Restart</button>
+  </div>
+  <script type="module" src="script.js"></script>
 </body>
 </html>

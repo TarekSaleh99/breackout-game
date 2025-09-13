@@ -1,8 +1,13 @@
-import { paddle, initPaddle, drawPaddle, setupInput, updatePaddle } from './JS/Paddle.js';
-import { calculateBrickLayout ,generateBricks, drawBricks} from './JS/bricks.js';
+
+import { calculateBrickLayout ,generateBricks, drawBricks} from './bricks.js';
+import { paddle, initPaddle, drawPaddle, setupInput, updatePaddle } from './Paddle.js';
+import Ball from './ball.js';
+
+
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+
 
 function resizeCanvas() {
   canvas.width = canvas.clientWidth;
@@ -15,20 +20,30 @@ function resizeCanvas() {
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
+
 initPaddle(canvas);
 setupInput(canvas);
 
-function update() {
+const ball = new Ball(canvas, paddle);
+
+function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
 
   // Draw Bricks
   drawBricks(ctx);
 
+
   updatePaddle(canvas);
   drawPaddle(ctx);
 
-  requestAnimationFrame(update);
+
+  ball.update(paddle);
+  ball.draw();
+
+  requestAnimationFrame(gameLoop);
 }
+
 
 update();
 
@@ -36,3 +51,6 @@ update();
 document.getElementById("restartBtn").addEventListener("click", () => {
   generateBricks();
 });
+
+gameLoop();
+

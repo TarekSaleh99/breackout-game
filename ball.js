@@ -1,4 +1,4 @@
-var colorArray = [
+const colorArray = [
     '#FD8A8A',
     '#eff5abff',
     '#FFCBCB',
@@ -6,55 +6,57 @@ var colorArray = [
     '#9EA1D4',
 ];
 
-export default class Ball {
-    constructor(canvas, paddle, radius = 25, dx = 5, dy = -5) {
-        this.canvas = canvas;
-        this.ctx = canvas.getContext("2d");
-        this.radius = radius;
-        this.x = paddle.x + paddle.width / 2;
-        this.y = paddle.y - this.radius;
-        this.dx = dx;
-        this.dy = dy;
-        this.color = colorArray[Math.floor(Math.random() * colorArray.length)];
-    }
+let ball = null;
 
-    draw() {
-        this.ctx.beginPath();
-        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-        this.ctx.fillStyle = this.color;
-        this.ctx.fill();
-        this.ctx.stroke();
-        this.ctx.strokeStyle = "gray"
-        this.ctx.closePath();
-    }
-
-    update(paddle) {
-        this.x += this.dx;
-        this.y += this.dy;
-
-
-        if (this.x + this.radius > this.canvas.width || this.x - this.radius < 0) {
-            this.dx = -this.dx;
-        }
-        if (this.y - this.radius < 0) {
-            this.dy = -this.dy;
-        }
-
-
-        if (
-            this.y + this.radius > paddle.y &&
-            this.x > paddle.x &&
-            this.x < paddle.x + paddle.width
-        ) {
-            this.dy = -this.dy;
-        }
-
-
-        if (this.y + this.radius > this.canvas.height) {
-            this.x = paddle.x + paddle.width / 2;
-            this.y = paddle.y - this.radius;
-            this.dx = 4;
-            this.dy = -4;
-        }
-    }
+export function initBall(canvas, paddle, radius = 25) {
+    ball = {
+        canvas: canvas,
+        ctx: canvas.getContext("2d"),
+        radius: radius,
+        x: paddle.x + paddle.width / 2,
+        y: paddle.y - radius,
+        dx: (Math.random() < 0.5 ? -4 : 4),
+        dy: -4,
+        color: colorArray[Math.floor(Math.random() * colorArray.length)]
+    };
+    return ball;
 }
+
+export function drawBall() {
+    if (!ball) return;
+    const ctx = ball.ctx;
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2, false);
+    ctx.fillStyle = ball.color;
+    ctx.fill();
+    ctx.strokeStyle = "gray";
+    ctx.stroke();
+    ctx.closePath();
+}
+
+export function updateBall(paddle) {
+    if (!ball) return;
+
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+
+
+    if (ball.x + ball.radius > ball.canvas.width || ball.x - ball.radius < 0) {
+        ball.dx = -ball.dx;
+    }
+    if (ball.y - ball.radius < 0) {
+        ball.dy = -ball.dy;
+    }
+
+
+    if (
+        ball.y + ball.radius > paddle.y &&
+        ball.x > paddle.x &&
+        ball.x < paddle.x + paddle.width
+    ) {
+        ball.dy = -ball.dy;
+    }
+
+}
+
+export { ball };

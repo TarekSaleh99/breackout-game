@@ -1,84 +1,76 @@
+const paddle = {
+  width: 75,
+  height: 10,
+  x: 0,
+  y: 0,
+  speed: 5,
+  dx: 0
+};
 
-    // Paddle object
-    export const paddle = {
-      width: 75,
-      height: 10,
-      x: 0,
-      y: 0,
-      speed: 5
-    };
+const canvas = document.getElementById("gameCanvas");
 
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+paddle.x = (canvas.width - paddle.width) / 2;
+paddle.y = canvas.height - paddle.height - 10;
 
-    // Position paddle at the bottom middle
-    paddle.x = (canvas.width - paddle.width) / 2;
-    paddle.y = canvas.height - paddle.height - 10;
+function drawPaddle(ctx) {
+  ctx.beginPath();
+  ctx.rect(paddle.x, paddle.y, paddle.width, paddle.height);
+  ctx.fillStyle = "#60a5fa";
+  ctx.fill();
+  ctx.closePath();
+}
 
-    // Draw paddle
-    function drawPaddle() {
-      ctx.beginPath();
-      ctx.rect(paddle.x, paddle.y, paddle.width, paddle.height);
-      ctx.fillStyle = "#60a5fa"; // blue
-      ctx.fill();
-      ctx.closePath();
-    }
+function movePaddle() {
+  paddle.x += paddle.dx;
+  if (paddle.x < 0) paddle.x = 0;
+  if (paddle.x + paddle.width > canvas.width) paddle.x = canvas.width - paddle.width;
+}
 
-    // Keep paddle inside canvas
-    function movePaddle() {
-      if (paddle.x < 0) paddle.x = 0;
-      if (paddle.x + paddle.width > canvas.width) {
-        paddle.x = canvas.width - paddle.width;
-      }
-    }
+window.onload = () => {
+  drawPaddle();
+};
 
-    // Input
-    let rightPressed = false;
-    let leftPressed = false;
+// Input
+let rightPressed = false;
+let leftPressed = false;
 
-    document.addEventListener("keydown", keyDownHandler);
-    document.addEventListener("keyup", keyUpHandler);
-    document.addEventListener("mousemove", mouseMoveHandler);
+export function setupInput() {
+  document.addEventListener("keydown", keyDownHandler);
+  document.addEventListener("keyup", keyUpHandler);
+  document.addEventListener("mousemove", mouseMoveHandler);
+  requestAnimationFrame(update);
+}
 
-    function keyDownHandler(e) {
-      if (e.key === "Right" || e.key === "ArrowRight") {
-        rightPressed = true;
-      } else if (e.key === "Left" || e.key === "ArrowLeft") {
-        leftPressed = true;
-      }
-    }
+function keyDownHandler(e) {
+  if (e.key === "Right" || e.key === "ArrowRight") {
+    rightPressed = true;
+  } else if (e.key === "Left" || e.key === "ArrowLeft") {
+    leftPressed = true;
+  }
+}
 
-    function keyUpHandler(e) {
-      if (e.key === "Right" || e.key === "ArrowRight") {
-        rightPressed = false;
-      } else if (e.key === "Left" || e.key === "ArrowLeft") {
-        leftPressed = false;
-      }
-    }
-    
+function keyUpHandler(e) {
+  if (e.key === "Right" || e.key === "ArrowRight") {
+    rightPressed = false;
+  } else if (e.key === "Left" || e.key === "ArrowLeft") {
+    leftPressed = false;
+  }
+}
 
-    function mouseMoveHandler(e) {
-      const relativeX = e.clientX - canvas.offsetLeft;
-      if (relativeX > 0 && relativeX < canvas.width) {
-        paddle.x = relativeX - paddle.width / 2;
-      }
-    }
+function mouseMoveHandler(e) {
+  const canvas = document.getElementById("gameCanvas");
+  const relativeX = e.clientX - canvas.offsetLeft;
+  if (relativeX > 0 && relativeX < canvas.width) {
+    paddle.x = relativeX - paddle.width/2;
+  }
+}
 
-    // Game loop
-    export function update() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      if (rightPressed) {
-        paddle.x += paddle.speed;
-      } else if (leftPressed) {
-        paddle.x -= paddle.speed;
-      }
-
-      movePaddle();
-      drawPaddle();
-
-      requestAnimationFrame(update);
-    }
-
-    // Start loop
-    update();
+function update() {
+  if (rightPressed) {
+    paddle.x += paddle.speed;
+  } else if (leftPressed) {
+    paddle.x -= paddle.speed;
+  }
+  movePaddle();
+  requestAnimationFrame(update);
+}

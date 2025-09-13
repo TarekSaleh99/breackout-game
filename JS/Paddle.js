@@ -1,6 +1,6 @@
 
     // Paddle object
-    const paddle = {
+    export const paddle = {
       width: 75,
       height: 10,
       x: 0,

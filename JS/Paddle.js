@@ -55,6 +55,7 @@
         leftPressed = false;
       }
     }
+    
 
     function mouseMoveHandler(e) {
       const relativeX = e.clientX - canvas.offsetLeft;

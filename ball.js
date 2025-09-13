@@ -1,3 +1,5 @@
+import { loseLife } from "./gameState.js";
+
 const colorArray = [
     '#FD8A8A',
     '#eff5abff',
@@ -40,13 +42,15 @@ export function updateBall(paddle) {
     ball.x += ball.dx;
     ball.y += ball.dy;
 
+    const canvas = ball.canvas; // reuse the same one we gave it at init time
 
     if (ball.x + ball.radius > ball.canvas.width || ball.x - ball.radius < 0) {
         ball.dx = -ball.dx;
     }
 
-    if (ball.y + ball.radius > ball.canvas.height || ball.y - ball.radius < 0) {
-        ball.dy = -ball.dy;
+    // top wall
+    if (ball.y - ball.radius < 0) {
+        ball.dy = -ball.dy
     }
 
 
@@ -56,6 +60,11 @@ export function updateBall(paddle) {
         ball.x < paddle.x + paddle.width
     ) {
         ball.dy = -ball.dy;
+    }
+
+    // bottom of screen --> losing a life function
+    if (ball.y + ball.radius > canvas.height){
+        loseLife(canvas);
     }
 }
 export { ball };

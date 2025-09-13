@@ -44,10 +44,6 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-
-
-update();
-
 // Restart button → regenerate new wall
 document.getElementById("restartBtn").addEventListener("click", () => {
   generateBricks();

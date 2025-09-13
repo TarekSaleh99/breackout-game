@@ -1,6 +1,5 @@
 import { paddle, initPaddle, drawPaddle, setupInput, updatePaddle } from './Paddle.js';
-import Ball from './ball.js';
-
+import { initBall, drawBall, updateBall, ball } from './ball.js';
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -17,7 +16,8 @@ resizeCanvas();
 initPaddle(canvas);
 setupInput(canvas);
 
-const ball = new Ball(canvas, paddle);
+
+initBall(canvas, paddle);
 
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -27,8 +27,8 @@ function gameLoop() {
   drawPaddle(ctx);
 
 
-  ball.update(paddle);
-  ball.draw();
+  updateBall(paddle);
+  drawBall();
 
   requestAnimationFrame(gameLoop);
 }

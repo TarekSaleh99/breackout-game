@@ -44,7 +44,8 @@ export function updateBall(paddle) {
     if (ball.x + ball.radius > ball.canvas.width || ball.x - ball.radius < 0) {
         ball.dx = -ball.dx;
     }
-    if (ball.y - ball.radius < 0) {
+
+    if (ball.y + ball.radius > ball.canvas.height || ball.y - ball.radius < 0) {
         ball.dy = -ball.dy;
     }
 
@@ -56,7 +57,5 @@ export function updateBall(paddle) {
     ) {
         ball.dy = -ball.dy;
     }
-
 }
-
 export { ball };

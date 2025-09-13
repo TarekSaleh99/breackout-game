@@ -3,3 +3,6 @@
 
 # Local database or data files
 DB_store/
+
+# macOS system files
+.DS_Store

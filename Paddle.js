@@ -1,6 +1,6 @@
 export const paddle = {
-  width: 75,
-  height: 10,
+  width: 200,
+  height: 20,
   x: 0,
   y: 0,
   speed: 5,
@@ -16,11 +16,18 @@ export function initPaddle(canvas) {
 }
 
 export function drawPaddle(ctx) {
+  ctx.save();
+  ctx.shadowBlur = 3;     
+  ctx.shadowColor = "#0084ffdb"; 
+  ctx.strokeStyle = "#191cd6ff"; 
+  ctx.lineWidth = 4;         
   ctx.beginPath();
-  ctx.rect(paddle.x, paddle.y, paddle.width, paddle.height);
-  ctx.fillStyle = "#60a5fa";
+  ctx.roundRect(paddle.x, paddle.y, paddle.width, paddle.height, 30);
+  ctx.fillStyle = "#8a90e8aa";
   ctx.fill();
+  ctx.stroke();
   ctx.closePath();
+  ctx.restore();
 }
 
 function movePaddle(canvas) {

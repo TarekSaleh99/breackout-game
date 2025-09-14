@@ -3,6 +3,7 @@ import { calculateBrickLayout, generateBricks, drawBricks, bricks } from './bric
 import { paddle, initPaddle, drawPaddle, setupInput, updatePaddle } from './Paddle.js';
 import { initBall, drawBall, updateBall, ball } from './ball.js';
 import { initGameState, gameState } from './gameState.js'
+import {animate, setupAudio , createCircles, hideButtonById} from './background.js';
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -96,12 +97,25 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-// Restart button → regenerate new wall
-document.getElementById("restartBtn").addEventListener("click", () => {
-  generateBricks();
-  gameState.lives = 3;
-  gameState.isGameOver = false;
-  initGameState();
-});
 
-gameLoop();
+//get the canvas element and set its width and height to the window width and height and get the context
+const backgroundCanvas = document.getElementById('background');
+backgroundCanvas.width = window.innerWidth;
+backgroundCanvas.height = window.innerHeight;
+const c = backgroundCanvas.getContext('2d');
+
+// Create an array to hold the circles and animate them
+const circles = createCircles(100, backgroundCanvas.width, backgroundCanvas.height);
+animate(c, circles, backgroundCanvas.width, backgroundCanvas.height);
+
+//get the audio tag and speaker button by id  and set the sound to muted 
+const speakerBtn = document.getElementById("speaker-btn");
+const bg = document.getElementById("bg");
+setupAudio(speakerBtn, bg);
+
+document.getElementById('start-game-btn').addEventListener('click', function() {
+    hideButtonById('start-game-btn');
+    gameLoop();
+   
+
+});

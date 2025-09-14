@@ -6,18 +6,21 @@
   <title>Brickout Game</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body style="background: url('Assets/pexels-umkreisel-app-1146134.jpg') no-repeat center center; background-size: cover;">
+<body>
   <div class="scores">
     <span>Score <span id="score">0</span></span>
     <span>Lives <span id="lives">3</span></span>
     <span>Highest Score <span id="highScore">0</span></span>
   </div>
+    <canvas id="background"></canvas>
+    <audio id="bg" src="Assets/Pixel Peeker Polka.mp3" loop muted></audio>
+    <img id="speaker-btn" src="Assets/speaker-off.png" alt="Speaker Button">
+
+    <!-- Start Game Button -->
+    <button id="start-game-btn">Start Game</button>
+
   <canvas id="gameCanvas"></canvas>
-  <div class="controls">
-    <button id="startBtn">Start</button>
-    <button id="pauseBtn">Pause</button>
-    <button id="restartBtn">Restart</button>
-  </div>
+
   <script type="module" src="script.js"></script>
 </body>
 </html>

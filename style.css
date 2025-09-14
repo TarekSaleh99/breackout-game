@@ -7,7 +7,7 @@ body {
   color: white;
   font-family: Arial, sans-serif;
   overflow: hidden;
-  
+
 }
 
 .scores {
@@ -23,13 +23,13 @@ body {
   border-radius: 6px;
 }
 
-canvas {
-  flex: 1; 
-  background: #ffffffa5;
-  border: 2px solid #e3e4e6;
-  border-radius: 12px;
-  display: block;
-  width: 100%;
+#gameCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1; 
 }
 
 .controls {
@@ -53,4 +53,50 @@ button {
 button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+#background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0; /* Lower z-index */
+  pointer-events: none; /* So clicks go through */
+
+}
+
+#start-game-btn {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(180deg, #b0b0b0 0%, #888 100%);
+  color: #fff;
+  font-family: 'Roboto', Arial, sans-serif;
+  font-size: 2.5rem;
+  padding: 1.5rem 4rem;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  box-shadow: 0 8px 0 #666, 0 12px 24px rgba(0, 0, 0, 0.2);
+  text-shadow: 1px 2px 4px #444;
+  z-index: 10;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+#start-game-btn:active {
+  transform: translate(-50%, -48%) scale(0.98);
+  box-shadow: 0 4px 0 #666, 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+#speaker-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  user-select: none;
+  z-index: 20; /* Add this line */
 }

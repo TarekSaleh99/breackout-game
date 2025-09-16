@@ -1,41 +1,47 @@
-import { initBall, ball } from "./ball.js";
-import { paddle, initPaddle } from "./Paddle.js";
+// gameState.js
 
-export let gameState = {
-    lives: 3,
-    isGameOver: false
-};
+import { Paddle } from "./Paddle.js";
+import { Ball } from "./ball.js";
 
-// Update the lives in DOM
-function updateHUD() {
-    document.getElementById('lives').textContent = gameState.lives;
-}
+export class GameState {
+  constructor(canvas, initialLives = 3) {
+    this.canvas = canvas;
+    this.lives = initialLives;
+    this.isGameOver = false;
 
+    // create paddle and ball (ball receives reference to this GameState)
+    this.paddle = new Paddle(canvas);
+    this.ball = new Ball(canvas, this.paddle, this);
 
-// lose life when ball misses the paddle
-export function loseLife(canvas) {
-    gameState.lives--;
+    this.updateHUD();
+  }
 
-    if (gameState.lives <= 0 ) {
-        gameOver();
+  // Update the lives counter in DOM
+  updateHUD() {
+    const livesElement = document.getElementById("lives");
+    if (livesElement) livesElement.textContent = this.lives;
+  }
+
+  // Lose a life when ball misses the paddle
+  loseLife() {
+    this.lives--;
+    if (this.lives <= 0) {
+      this.gameOver();
     } else {
-        resetRound(canvas);
+      this.resetRound();
     }
-    updateHUD();
-}
+    this.updateHUD();
+  }
 
-// Reset ball & paddle position
-function resetRound(canvas){
-    initPaddle(canvas);
-    initBall(canvas, paddle)
-}
+  // Reset ball & paddle positions (recreate so constructors re-init position)
+  resetRound() {
+    this.paddle = new Paddle(this.canvas);
+    this.ball = new Ball(this.canvas, this.paddle, this);
+  }
 
-function gameOver() {
-    gameState.isGameOver = true;
-    alert("Game Over")
-}
-
-// Call once at start
-export function initGameState() {
-  updateHUD();
+  // Game over state
+  gameOver() {
+    this.isGameOver = true;
+    alert("Game Over");
+  }
 }

@@ -1,71 +1,88 @@
-export const paddle = {
-  width: 200,
-  height: 20,
-  x: 0,
-  y: 0,
-  speed: 5,
-  dx: 0
-};
+// Paddle.js
 
-let rightPressed = false;
-let leftPressed = false;
+export class Paddle {
+  constructor(canvas, width = 200, height = 20, speed = 5) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext("2d");
 
-export function initPaddle(canvas) {
-  paddle.x = (canvas.width - paddle.width) / 2;
-  paddle.y = canvas.height - paddle.height - 10;
-}
+    this.width = width;
+    this.height = height;
+    this.speed = speed;
 
-export function drawPaddle(ctx) {
-  ctx.save();
-  ctx.shadowBlur = 3;     
-  ctx.shadowColor = "#0084ffdb"; 
-  ctx.strokeStyle = "#191cd6ff"; 
-  ctx.lineWidth = 4;         
-  ctx.beginPath();
-  ctx.roundRect(paddle.x, paddle.y, paddle.width, paddle.height, 30);
-  ctx.fillStyle = "#8a90e8aa";
-  ctx.fill();
-  ctx.stroke();
-  ctx.closePath();
-  ctx.restore();
-}
+    // Initial position
+    this.x = (canvas.width - this.width) / 2;
+    this.y = canvas.height - this.height - 10;
 
-function movePaddle(canvas) {
-  paddle.x += paddle.dx;
-  if (paddle.x < 0) paddle.x = 0;
-  if (paddle.x + paddle.width > canvas.width) paddle.x = canvas.width - paddle.width;
-}
+    this.rightPressed = false;
+    this.leftPressed = false;
 
-export function setupInput(canvas) {
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Right" || e.key === "ArrowRight") {
-      rightPressed = true;
-    } else if (e.key === "Left" || e.key === "ArrowLeft") {
-      leftPressed = true;
-    }
-  });
-
-  document.addEventListener("keyup", (e) => {
-    if (e.key === "Right" || e.key === "ArrowRight") {
-      rightPressed = false;
-    } else if (e.key === "Left" || e.key === "ArrowLeft") {
-      leftPressed = false;
-    }
-  });
-
-  document.addEventListener("mousemove", (e) => {
-    const relativeX = e.clientX - canvas.offsetLeft;
-    if (relativeX > 0 && relativeX < canvas.width) {
-      paddle.x = relativeX - paddle.width / 2;
-    }
-  });
-}
-
-export function updatePaddle(canvas) {
-  if (rightPressed) {
-    paddle.x += paddle.speed;
-  } else if (leftPressed) {
-    paddle.x -= paddle.speed;
+    this.setupInput();
   }
-  movePaddle(canvas);
+
+  // Draw paddle
+  draw() {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.shadowBlur = 3;
+    ctx.shadowColor = "#0084ffdb";
+    ctx.strokeStyle = "#191cd6ff";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    // Use roundRect if supported; fallback will throw in old browsers
+    if (typeof ctx.roundRect === "function") {
+      ctx.roundRect(this.x, this.y, this.width, this.height, 30);
+    } else {
+      ctx.rect(this.x, this.y, this.width, this.height);
+    }
+    ctx.fillStyle = "#8a90e8aa";
+    ctx.fill();
+    ctx.stroke();
+    ctx.closePath();
+    ctx.restore();
+  }
+
+  // Keep paddle inside canvas
+  clamp() {
+    if (this.x < 0) this.x = 0;
+    if (this.x + this.width > this.canvas.width) {
+      this.x = this.canvas.width - this.width;
+    }
+  }
+
+  // Keyboard & mouse controls
+  setupInput() {
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Right" || e.key === "ArrowRight") {
+        this.rightPressed = true;
+      } else if (e.key === "Left" || e.key === "ArrowLeft") {
+        this.leftPressed = true;
+      }
+    });
+
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "Right" || e.key === "ArrowRight") {
+        this.rightPressed = false;
+      } else if (e.key === "Left" || e.key === "ArrowLeft") {
+        this.leftPressed = false;
+      }
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      const rect = this.canvas.getBoundingClientRect();
+      const relativeX = e.clientX - rect.left;
+      if (relativeX > 0 && relativeX < this.canvas.width) {
+        this.x = relativeX - this.width / 2;
+      }
+    });
+  }
+
+  // Update paddle position
+  update() {
+    if (this.rightPressed) {
+      this.x += this.speed;
+    } else if (this.leftPressed) {
+      this.x -= this.speed;
+    }
+    this.clamp();
+  }
 }

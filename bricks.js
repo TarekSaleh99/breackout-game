@@ -1,239 +1,159 @@
+// bricks.js
 
-
-// Brick grid parameters
+// Brick grid parameters (constants)
 export const BRICK_ROWS = 10;
 export const BRICK_COLS = 10;
 export const BRICK_PADDING_X = 10;
 export const BRICK_PADDING_Y = 10;
 
-// Will be calculated dynamically:
-export let brickWidth;
-export let brickHeight;
-export let brickOffsetTop;
-export let brickOffsetLeft;
+const LOWER_ROW_FILL_CHANCE = 0.8; // randomness for grid layout
 
-// Randomization for grid rows & cells
-const LOWER_ROW_FILL_CHANCE = 0.8;
-
-// Brick  array
-export let bricks = [];
-
-
-// function to calculate dimentions of bricks in canvas 
-export function calculateBrickLayout(canvas) {
-  brickOffsetLeft = Math.floor(canvas.width * 0.05);  // 5% of width
-  brickOffsetTop = Math.floor(canvas.height * 0.1);  // 10% of height
-  brickHeight = Math.floor(canvas.height * 0.03); // ~3% of height
-
-  const totalPaddingX = BRICK_PADDING_X * (BRICK_COLS - 1);
-  const innerWidth = canvas.width - (brickOffsetLeft * 2) - totalPaddingX;
-  brickWidth = Math.floor(innerWidth / BRICK_COLS);
-}
-
-
-
-
-// Generate brick array 
-export function generateBricks() {
-  bricks = []; // clear old bricks
-
-  // Pick a random layout each game
-  const layouts = ["grid", "pyramid", "checker","diamond", "random", "zigzag"];
-  const currentLayout = layouts[Math.floor(Math.random() * layouts.length)];
-
-  switch (currentLayout) {
-    case "grid":
-      generateGrid();
-      break;
-
-    case "pyramid":
-      generatePyramid();
-      break;
-
-    case "checker":
-      generateChecker();
-      break;
-
-    case  "diamond": 
-      generateDiamond(); 
-      break;
-
-    case "random": 
-      generateRandom(); 
-      break;
-    case "zigzag": 
-      generateZigZag(); 
-      break;
+// === Single Brick Class ===
+export class Brick {
+  constructor(x, y, width, height, color) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.status = 1; // 1 = visible, 0 = destroyed
+    this.color = color;
   }
 
-
-  console.log("Generated layout:", currentLayout); // just for debugging
+  draw(ctx) {
+    if (this.status === 1) {
+      ctx.fillStyle = this.color;
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+      ctx.strokeStyle = "#000";
+      ctx.strokeRect(this.x, this.y, this.width, this.height);
+    }
+  }
 }
 
+// === Brick Manager Class ===
+export class BrickManager {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.bricks = [];
+    this.brickWidth = 0;
+    this.brickHeight = 0;
+    this.brickOffsetTop = 0;
+    this.brickOffsetLeft = 0;
+    this.calculateBrickLayout();
+  }
 
+  calculateBrickLayout() {
+    this.brickOffsetLeft = Math.floor(this.canvas.width * 0.05);
+    this.brickOffsetTop = Math.floor(this.canvas.height * 0.1);
+    this.brickHeight = Math.floor(this.canvas.height * 0.03);
+    const totalPaddingX = BRICK_PADDING_X * (BRICK_COLS - 1);
+    const innerWidth = this.canvas.width - this.brickOffsetLeft * 2 - totalPaddingX;
+    this.brickWidth = Math.floor(innerWidth / BRICK_COLS);
+  }
 
-// === Layout: Classic Grid (your current one) ===
-function generateGrid() {
-  for (let row = 0; row < BRICK_ROWS; row++) {
-    for (let col = 0; col < BRICK_COLS; col++) {
-      const x = brickOffsetLeft + col * (brickWidth + BRICK_PADDING_X);
-      const y = brickOffsetTop + row * (brickHeight + BRICK_PADDING_Y);
+  generateBricks() {
+    this.bricks = [];
+    const layouts = ["grid", "pyramid", "checker", "diamond", "random", "zigzag"];
+    const currentLayout = layouts[Math.floor(Math.random() * layouts.length)];
+    switch (currentLayout) {
+      case "grid": this.generateGrid(); break;
+      case "pyramid": this.generatePyramid(); break;
+      case "checker": this.generateChecker(); break;
+      case "diamond": this.generateDiamond(); break;
+      case "random": this.generateRandom(); break;
+      case "zigzag": this.generateZigZag(); break;
+    }
+    console.log("Generated layout:", currentLayout);
+  }
 
-      let shouldCreate = false;
+  generateGrid() {
+    for (let row = 0; row < BRICK_ROWS; row++) {
+      for (let col = 0; col < BRICK_COLS; col++) {
+        const x = this.brickOffsetLeft + col * (this.brickWidth + BRICK_PADDING_X);
+        const y = this.brickOffsetTop + row * (this.brickHeight + BRICK_PADDING_Y);
+        let shouldCreate = false;
+        if (row === 0 || row === 2) shouldCreate = true;
+        else if (Math.random() < LOWER_ROW_FILL_CHANCE) shouldCreate = true;
+        if (shouldCreate) this.bricks.push(this.makeBrick(x, y));
+      }
+    }
+  }
 
-      if (row === 0 || row === 2) {
-        shouldCreate = true;
-      } else {
-        if (Math.random() < LOWER_ROW_FILL_CHANCE) {
-          shouldCreate = true;
+  generatePyramid() {
+    for (let row = 0; row < BRICK_ROWS; row++) {
+      const startCol = row;
+      const endCol = BRICK_COLS - row;
+      if (endCol <= startCol) break;
+      for (let col = startCol; col < endCol; col++) {
+        const x = this.brickOffsetLeft + col * (this.brickWidth + BRICK_PADDING_X);
+        const y = this.brickOffsetTop + row * (this.brickHeight + BRICK_PADDING_Y);
+        this.bricks.push(this.makeBrick(x, y));
+      }
+    }
+  }
+
+  generateChecker() {
+    for (let row = 0; row < BRICK_ROWS; row++) {
+      for (let col = 0; col < BRICK_COLS; col++) {
+        if ((row + col) % 2 === 0) {
+          const x = this.brickOffsetLeft + col * (this.brickWidth + BRICK_PADDING_X);
+          const y = this.brickOffsetTop + row * (this.brickHeight + BRICK_PADDING_Y);
+          this.bricks.push(this.makeBrick(x, y));
         }
       }
+    }
+  }
 
-      if (shouldCreate) {
-        bricks.push(makeBrick(x, y));
+  generateDiamond() {
+    const mid = Math.floor(BRICK_ROWS / 2);
+    for (let row = 0; row < BRICK_ROWS; row++) {
+      const shrink = Math.abs(mid - row);
+      const startCol = shrink;
+      const endCol = BRICK_COLS - shrink;
+      for (let col = startCol; col < endCol; col++) {
+        const x = this.brickOffsetLeft + col * (this.brickWidth + BRICK_PADDING_X);
+        const y = this.brickOffsetTop + row * (this.brickHeight + BRICK_PADDING_Y);
+        this.bricks.push(this.makeBrick(x, y));
       }
     }
   }
-}
 
-
-
-// === Layout: Pyramid ===
-// Row 0 has full width, each lower row shrinks by 1 brick each side
-function generatePyramid() {
-  for (let row = 0; row < BRICK_ROWS; row++) {
-    const startCol = row;                     // shrink from left
-    const endCol = BRICK_COLS - row;          // shrink from right
-    if (endCol <= startCol) break;            // stop if no space left
-
-    for (let col = startCol; col < endCol; col++) {
-      const x = brickOffsetLeft + col * (brickWidth + BRICK_PADDING_X);
-      const y = brickOffsetTop + row * (brickHeight + BRICK_PADDING_Y);
-      bricks.push(makeBrick(x, y));
+  generateRandom() {
+    const brickCount = Math.floor((BRICK_ROWS * BRICK_COLS) * 0.5);
+    for (let i = 0; i < brickCount; i++) {
+      const col = Math.floor(Math.random() * BRICK_COLS);
+      const row = Math.floor(Math.random() * BRICK_ROWS);
+      const x = this.brickOffsetLeft + col * (this.brickWidth + BRICK_PADDING_X);
+      const y = this.brickOffsetTop + row * (this.brickHeight + BRICK_PADDING_Y);
+      this.bricks.push(this.makeBrick(x, y));
     }
   }
-}
 
-
-
-// === Layout: Checkerboard ===
-// Every other column is skipped
-function generateChecker() {
-  for (let row = 0; row < BRICK_ROWS; row++) {
-    for (let col = 0; col < BRICK_COLS; col++) {
-      if ((row + col) % 2 === 0) { // alternate
-        const x = brickOffsetLeft + col * (brickWidth + BRICK_PADDING_X);
-        const y = brickOffsetTop + row * (brickHeight + BRICK_PADDING_Y);
-        bricks.push(makeBrick(x, y));
+  generateZigZag() {
+    for (let row = 0; row < BRICK_ROWS; row++) {
+      const offset = (row % 2 === 0 ? 0 : Math.floor(this.brickWidth / 2));
+      for (let col = 0; col < BRICK_COLS; col++) {
+        const x = this.brickOffsetLeft + col * (this.brickWidth + BRICK_PADDING_X) + offset;
+        const y = this.brickOffsetTop + row * (this.brickHeight + BRICK_PADDING_Y);
+        this.bricks.push(this.makeBrick(x, y));
       }
     }
   }
-}
 
-//diamond layout
-function generateDiamond() {
-  const mid = Math.floor(BRICK_ROWS / 2);
-
-  for (let row = 0; row < BRICK_ROWS; row++) {
-    const shrink = Math.abs(mid - row); // shrink as you move away from center
-    const startCol = shrink;
-    const endCol = BRICK_COLS - shrink;
-
-    for (let col = startCol; col < endCol; col++) {
-      const x = brickOffsetLeft + col * (brickWidth + BRICK_PADDING_X);
-      const y = brickOffsetTop + row * (brickHeight + BRICK_PADDING_Y);
-      bricks.push(makeBrick(x, y));
-    }
+  makeBrick(x, y) {
+    return new Brick(x, y, this.brickWidth, this.brickHeight, this.pickBrickColor());
   }
-}
 
-
-// random layout 
-function generateRandom() {
-  const brickCount = Math.floor((BRICK_ROWS * BRICK_COLS) * 0.5); // 50% filled
-
-  for (let i = 0; i < brickCount; i++) {
-    const col = Math.floor(Math.random() * BRICK_COLS);
-    const row = Math.floor(Math.random() * BRICK_ROWS);
-
-    const x = brickOffsetLeft + col * (brickWidth + BRICK_PADDING_X);
-    const y = brickOffsetTop + row * (brickHeight + BRICK_PADDING_Y);
-
-    bricks.push(makeBrick(x, y));
+  pickBrickColor() {
+    const palette = [
+      "#00eaff", "#ffee00", "#4ecdc4", "#c084fc", "#ff6bcb",
+      "#ffd93d", "#7fb3ff", "#ffadad", "#ffd6a5", "#fdffb6",
+      "#caffbf", "#9bf6ff", "#bdb2ff", "#ffc6ff", "#f1c40f",
+      "#e67e22", "#bdc3c7", "#95a5a6", "#ecf0f1"
+    ];
+    return palette[Math.floor(Math.random() * palette.length)];
   }
-}
 
-
-// zigzag layout
-function generateZigZag() {
-  for (let row = 0; row < BRICK_ROWS; row++) {
-    const offset = (row % 2 === 0 ? 0 : Math.floor(brickWidth / 2)); // shift odd rows
-
-    for (let col = 0; col < BRICK_COLS; col++) {
-      const x = brickOffsetLeft + col * (brickWidth + BRICK_PADDING_X) + offset;
-      const y = brickOffsetTop + row * (brickHeight + BRICK_PADDING_Y);
-      bricks.push(makeBrick(x, y));
-    }
+  drawBricks(ctx) {
+    for (const brick of this.bricks) brick.draw(ctx);
   }
-}
-
-
-
-
-
-// === Helper to create a single brick ===
-function makeBrick(x, y) {
-  return {
-    x,
-    y,
-    width: brickWidth,
-    height: brickHeight,
-    status: 1,
-    color: pickBrickColor()
-  };
-}
-
-
-
-
-//  Render bricks
-export function drawBricks(ctx) {
-  for (const brick of bricks) {
-    if (brick.status === 1) {
-      ctx.fillStyle = brick.color;
-      ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
-
-      //optional border
-      ctx.strokeStyle = "#000";
-      ctx.strokeRect(brick.x, brick.y, brick.width, brick.height);
-    }
-  }
-}
-
-// random color for each brick
-function pickBrickColor() {
-  const palette = [
-    "#00eaff", // cyan neon
-    "#ffee00", // yellow neon
-    "#4ecdc4", // teal
-    "#c084fc", // violet
-    "#ff6bcb", // hot pink
-    "#ffd93d", // golden yellow
-    "#7fb3ff", // light blue
-    "#ffadad", // soft red
-    "#ffd6a5", // peach
-    "#fdffb6", // pale yellow
-    "#caffbf", // mint green
-    "#9bf6ff", // sky blue
-    "#bdb2ff", // lavender
-    "#ffc6ff", // pink
-    "#f1c40f", // gold
-    "#e67e22", // bronze
-    "#bdc3c7", // silver gray
-    "#95a5a6", // steel
-    "#ecf0f1"  // platinum white
-
-  ];
-  const randomIndex = Math.floor(Math.random() * palette.length);
-  return palette[randomIndex];
 }

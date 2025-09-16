@@ -1,70 +1,75 @@
-import { loseLife } from "./gameState.js";
+// ball.js
 
 const colorArray = [
-    '#FD8A8A',
-    '#eff5abff',
-    '#FFCBCB',
-    '#A8D1D1',
-    '#9EA1D4',
+  '#FD8A8A',
+  '#eff5abff',
+  '#FFCBCB',
+  '#A8D1D1',
+  '#9EA1D4',
 ];
 
-let ball = null;
+export class Ball {
+  constructor(canvas, paddle, gameState, radius = 25) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext("2d");
+    this.radius = radius;
+    this.gameState = gameState;
 
-export function initBall(canvas, paddle, radius = 25) {
-    ball = {
-        canvas: canvas,
-        ctx: canvas.getContext("2d"),
-        radius: radius,
-        x: paddle.x + paddle.width / 2,
-        y: paddle.y - radius,
-        dx: (Math.random() < 0.5 ? -4 : 4),
-        dy: -4,
-        color: colorArray[Math.floor(Math.random() * colorArray.length)]
-    };
-    return ball;
-}
+    // start position relative to paddle
+    this.x = paddle.x + paddle.width / 2;
+    this.y = paddle.y - radius;
 
-export function drawBall() {
-    if (!ball) return;
-    const ctx = ball.ctx;
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2, false);
-    ctx.fillStyle = ball.color;
-    ctx.fill();
-    ctx.strokeStyle = "gray";
-    ctx.stroke();
-    ctx.closePath();
-}
+    // random direction for horizontal speed
+    this.dx = (Math.random() < 0.5 ? -4 : 4);
+    this.dy = -4;
 
-export function updateBall(paddle) {
-    if (!ball) return;
+    this.color = colorArray[Math.floor(Math.random() * colorArray.length)];
+  }
 
-    ball.x += ball.dx;
-    ball.y += ball.dy;
+  draw() {
+    this.ctx.beginPath();
+    this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    this.ctx.fillStyle = this.color;
+    this.ctx.fill();
+    this.ctx.strokeStyle = "gray";
+    this.ctx.stroke();
+    this.ctx.closePath();
+  }
 
-    const canvas = ball.canvas; // reuse the same one we gave it at init time
+  update(paddle) {
+    this.x += this.dx;
+    this.y += this.dy;
 
-    if (ball.x + ball.radius > ball.canvas.width || ball.x - ball.radius < 0) {
-        ball.dx = -ball.dx;
+    // wall collisions
+    if (this.x + this.radius > this.canvas.width || this.x - this.radius < 0) {
+      this.dx = -this.dx;
     }
 
-    // top wall
-    if (ball.y - ball.radius < 0) {
-        ball.dy = -ball.dy
+    if (this.y - this.radius < 0) {
+      this.dy = -this.dy;
     }
 
-
+    // paddle collision
     if (
-        ball.y + ball.radius > paddle.y &&
-        ball.x > paddle.x &&
-        ball.x < paddle.x + paddle.width
+      this.y + this.radius > paddle.y &&
+      this.x > paddle.x &&
+      this.x < paddle.x + paddle.width
     ) {
-        ball.dy = -ball.dy;
+      this.dy = -this.dy;
+      // optional: nudge based on where on paddle it hit
+      const hitPos = (this.x - paddle.x) / paddle.width - 0.5;
+      this.dx += hitPos * 2; // small spin
     }
 
-    // bottom of screen --> losing a life function
-    if (ball.y + ball.radius > canvas.height){
-        loseLife(canvas);
+    // bottom of screen → lose life
+    if (this.y + this.radius > this.canvas.height) {
+      if (this.gameState && typeof this.gameState.loseLife === "function") {
+        this.gameState.loseLife();
+      } else {
+        // fallback: just reset Y to top if no gameState provided
+        this.y = this.canvas.height / 2;
+        this.dy = -Math.abs(this.dy);
+      }
     }
+  }
 }
-export { ball };

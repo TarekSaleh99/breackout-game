@@ -1,121 +1,108 @@
+import { BrickManager } from "./bricks.js";
+import { GameState } from "./gameState.js";
+import { animate, setupAudio, createCircles, hideButtonById } from "./background.js";
 
-import { calculateBrickLayout, generateBricks, drawBricks, bricks } from './bricks.js';
-import { paddle, initPaddle, drawPaddle, setupInput, updatePaddle } from './Paddle.js';
-import { initBall, drawBall, updateBall, ball } from './ball.js';
-import { initGameState, gameState } from './gameState.js'
-import {animate, setupAudio , createCircles, hideButtonById} from './background.js';
-
+// === Setup main canvas ===
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// === Create game objects ===
+const gameState = new GameState(canvas); // paddle & ball initialized correctly
+const brickManager = new BrickManager(canvas);
 
+// === Resize handler ===
 function resizeCanvas() {
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 
-  // Update brick layout when canvas resizes
-  calculateBrickLayout(canvas);
-  generateBricks();
+  // update bricks canvas & layout
+  brickManager.canvas = canvas;
+  brickManager.calculateBrickLayout();
+  brickManager.generateBricks();
+
+  // reposition paddle & ball at bottom
+  gameState.resetRound();
 }
+
 window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
+resizeCanvas(); // call AFTER creating gameState
 
-
-initPaddle(canvas);
-setupInput(canvas);
-initBall(canvas, paddle);
-initGameState();
-
-
-
-
-// collision part between ball & bricks start here!
+// === Collision helpers ===
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
-
-// Check circle-rectangle collision
 function circleRectCollision(circle, rect) {
   const closestX = clamp(circle.x, rect.x, rect.x + rect.width);
   const closestY = clamp(circle.y, rect.y, rect.y + rect.height);
   const dx = circle.x - closestX;
   const dy = circle.y - closestY;
-  return (dx * dx + dy * dy) <= (circle.radius * circle.radius);
+  return dx * dx + dy * dy <= circle.radius * circle.radius;
 }
 
-//handleBallBrickCollisions here
+// === Score ===
 let score = 0;
-
 function handleBallBrickCollisions() {
-  for (const brick of bricks) {
+  const ball = gameState.ball;
+  for (const brick of brickManager.bricks) {
     if (brick.status !== 1) continue;
-
     if (circleRectCollision(ball, brick)) {
-      // 1. Remove brick
       brick.status = 0;
-
-      // 2. Update score
       score += 10;
-      document.getElementById("score").textContent = score;
+      const scoreEl = document.getElementById("score");
+      if (scoreEl) scoreEl.textContent = score;
 
-      // 3. Bounce ball
+      // Bounce ball
       const closestX = clamp(ball.x, brick.x, brick.x + brick.width);
       const closestY = clamp(ball.y, brick.y, brick.y + brick.height);
       const dx = ball.x - closestX;
       const dy = ball.y - closestY;
+      if (Math.abs(dx) > Math.abs(dy)) ball.dx = -ball.dx;
+      else ball.dy = -ball.dy;
 
-      if (Math.abs(dx) > Math.abs(dy)) {
-        ball.dx = -ball.dx;
-      } else {
-        ball.dy = -ball.dy;
-      }
-
-      break; // only handle one brick per frame
+      break;
     }
   }
 }
 
-// game loop to handle breakout game !
+// === Game Loop ===
 function gameLoop() {
-  if (gameState.isGameOver) return; // stop updating if game over
+  if (gameState.isGameOver) return;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Bricks
+  brickManager.drawBricks(ctx);
 
-  // Draw Bricks
-  drawBricks(ctx);
+  // Paddle
+  const paddle = gameState.paddle;
+  paddle.update();
+  paddle.draw();
 
-   // paddle
-  updatePaddle(canvas);
-  drawPaddle(ctx);
-
-   //ball
-  updateBall(paddle);
-  handleBallBrickCollisions(); 
-  drawBall();
+  // Ball
+  const ball = gameState.ball;
+  ball.update(paddle);
+  handleBallBrickCollisions();
+  ball.draw();
 
   requestAnimationFrame(gameLoop);
 }
 
-
-//get the canvas element and set its width and height to the window width and height and get the context
-const backgroundCanvas = document.getElementById('background');
+// === Background stars ===
+const backgroundCanvas = document.getElementById("background");
 backgroundCanvas.width = window.innerWidth;
 backgroundCanvas.height = window.innerHeight;
-const c = backgroundCanvas.getContext('2d');
+const bc = backgroundCanvas.getContext("2d");
 
-// Create an array to hold the circles and animate them
 const circles = createCircles(100, backgroundCanvas.width, backgroundCanvas.height);
-animate(c, circles, backgroundCanvas.width, backgroundCanvas.height);
+animate(bc, circles, backgroundCanvas.width, backgroundCanvas.height);
 
-//get the audio tag and speaker button by id  and set the sound to muted 
+// === Audio ===
 const speakerBtn = document.getElementById("speaker-btn");
 const bg = document.getElementById("bg");
 setupAudio(speakerBtn, bg);
 
-document.getElementById('start-game-btn').addEventListener('click', function() {
-    hideButtonById('start-game-btn');
-    gameLoop();
-   
-
+// === Start button ===
+document.getElementById("start-game-btn").addEventListener("click", function () {
+  hideButtonById("start-game-btn");
+  gameLoop();
 });

@@ -1,93 +1,116 @@
-// function to setup the audio when the speaker button is clicked with assets for the on and off images
-export function setupAudio(speakerBtn, bg, onSrc = "Assets/speaker.png", offSrc = "Assets/speaker-off.png") {
-    let isMuted = true;
+// background.js
 
-    // when clicked toggle the music on or off and change the icon
-    speakerBtn.addEventListener("click", function () {
-        if (isMuted) {
-            bg.muted = false;
-            bg.play();
-            // change image to ON
-            speakerBtn.src = onSrc;
-            isMuted = false;
-        } else {
-            bg.muted = true;
-            // change image to OFF
-            speakerBtn.src = offSrc;
-            isMuted = true;
-        }
+// Class to handle background audio toggle
+export class AudioManager {
+  constructor(speakerBtn, bg, onSrc = "Assets/speaker.png", offSrc = "Assets/speaker-off.png") {
+    this.speakerBtn = speakerBtn;
+    this.bg = bg;
+    this.onSrc = onSrc;
+    this.offSrc = offSrc;
+    this.isMuted = true;
+    this._setupAudioToggle();
+  }
+
+  _setupAudioToggle() {
+    this.speakerBtn.addEventListener("click", () => {
+      if (this.isMuted) {
+        this.bg.muted = false;
+        this.bg.play();
+        this.speakerBtn.src = this.onSrc;
+      } else {
+        this.bg.muted = true;
+        this.speakerBtn.src = this.offSrc;
+      }
+      this.isMuted = !this.isMuted;
     });
+  }
 }
 
-// function to hide the start game button by its id when clicked
-export function hideButtonById(buttonId) {
+// Class to handle UI buttons
+export class UIButton {
+  static hideById(buttonId) {
     const btn = document.getElementById(buttonId);
-    if (btn) {
-        btn.style.display = 'none';
-    }
+    if (btn) btn.style.display = "none";
+  }
 }
 
-// creating an empty array and insert (num) circles object with random x and y axis for each one of them 
-export function createCircles(num, width, height, dx = 0.08, dy = 0.08, radius = 1) {
-    const circles = [];
-    for (let i = 0; i < num; i++) {
-
-        const x = Math.random() * width;
-        const y = Math.random() * height;
-        circles.push(new Circle(x, y, dx, dy, radius));
-    
-    }
-    return circles;
-}
-
-
-//function responsible for moving the circles 
-export function animate(c, circles, width, height) {
-    // infinite loop to looks like an animation 
-    function frame() {
-
-        requestAnimationFrame(frame);
-
-        //clearing the old circles before making the new ones and calling the update method on each one of them
-        c.clearRect(0, 0, width, height);
-
-        for (let i = 0; i < circles.length; i++) {
-            circles[i].update(c, width, height);
-        }
-    }
-    frame();
-}
-
-
-//javascript object Circle for every (star) that will be drawn
+// Single circle/star for background
 export class Circle {
-    constructor(x, y, dx, dy, radius, color = '#ffffff') {
-        this.x = x;
-        this.y = y;
-        this.dx = dx;
-        this.dy = dy;
-        this.radius = radius;
-        this.color = color;
+  constructor(x, y, dx = 0.08, dy = 0.08, radius = 1, color = "#ffffff") {
+    this.x = x;
+    this.y = y;
+    this.dx = dx;
+    this.dy = dy;
+    this.radius = radius;
+    this.color = color;
+  }
+
+  draw(c) {
+    c.beginPath();
+    c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    c.fillStyle = this.color;
+    c.fill();
+  }
+
+  update(c, width, height) {
+    this.x += this.dx;
+    this.y += this.dy;
+
+    if (this.x > width) this.x -= width;
+    if (this.y > height) this.y -= height;
+
+    this.draw(c);
+  }
+}
+
+// Animation helper class (optional)
+export class CircleAnimation {
+  constructor(ctx, width, height, num = 100, dx = 0.08, dy = 0.08, radius = 1) {
+    this.ctx = ctx;
+    this.width = width;
+    this.height = height;
+    this.circles = [];
+    for (let i = 0; i < num; i++) {
+      const x = Math.random() * width;
+      const y = Math.random() * height;
+      this.circles.push(new Circle(x, y, dx, dy, radius));
     }
+  }
 
-    // draw method every time it get called a new Circle gets drawn
-    draw(c) {
-        c.beginPath();
-        c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-        c.fillStyle = this.color;
-        c.fill();
-    }
+  start() {
+    const frame = () => {
+      requestAnimationFrame(frame);
+      this.ctx.clearRect(0, 0, this.width, this.height);
+      for (const c of this.circles) c.update(this.ctx, this.width, this.height);
+    };
+    frame();
+  }
+}
 
-    // update the circle new position and move the x and y values by dy , dx values each time
-    update(c, width, height) {
-        // increment the circle position by dx and dy 
-        this.x += this.dx;
-        this.y += this.dy;
+// Convenience wrapper to create circles array (used by script)
+export function createCircles(num, width, height, dx = 0.08, dy = 0.08, radius = 1) {
+  const arr = [];
+  for (let i = 0; i < num; i++) {
+    arr.push(new Circle(Math.random() * width, Math.random() * height, dx, dy, radius));
+  }
+  return arr;
+}
 
+// Convenience animate function used in your original code
+export function animate(c, circles, width, height) {
+  function frame() {
+    requestAnimationFrame(frame);
+    c.clearRect(0, 0, width, height);
+    for (const circ of circles) circ.update(c, width, height);
+  }
+  frame();
+}
 
-        // check if the circle hit any corner of the page to decrement its position by the screen width or height
-        if (this.x > width) this.x -= width;
-        if (this.y > height) this.y -= height;
-        this.draw(c);
-    }
+// Convenience small wrappers
+export function setupAudio(speakerBtn, bg, onSrc, offSrc) {
+  return new AudioManager(speakerBtn, bg, onSrc, offSrc);
+}
+
+export function hideButtonById(id) {
+  return UIButton.hideById(id);
 }

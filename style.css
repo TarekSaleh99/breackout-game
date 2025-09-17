@@ -27,9 +27,13 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
   z-index: 1; 
+  box-sizing: border-box; /* important so border doesn't increase size */
+  transition: border 0.3s, border-radius 0.3s, box-shadow 0.3s; /* smooth transitions */
+}
+
+#gameCanvas.partial {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
 
 .controls {
@@ -59,8 +63,6 @@ button:hover {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
   z-index: 0; /* Lower z-index */
   pointer-events: none; /* So clicks go through */
 
@@ -99,4 +101,19 @@ button:hover {
   cursor: pointer;
   user-select: none;
   z-index: 20; /* Add this line */
+}
+
+
+#canvas-toggle-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 6px 12px;      /* small size */
+  font-size: 0.9rem;      /* smaller text */
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 30;            /* above everything */
+  background: #0b365e;
+  color: white;
+  border: none;
 }

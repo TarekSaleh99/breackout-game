@@ -2,30 +2,67 @@ import { BrickManager } from "./bricks.js";
 import { GameState } from "./gameState.js";
 import { animate, setupAudio, createCircles, hideButtonById } from "./background.js";
 
-// === Setup main canvas ===
+// Setup main canvas
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// === Create game objects ===
+const backgroundCanvas = document.getElementById("background");
+const bc = backgroundCanvas.getContext("2d");
+
+//  Create game objects 
 const gameState = new GameState(canvas); // paddle & ball initialized correctly
 const brickManager = new BrickManager(canvas);
 
-// === Resize handler ===
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+// === Toggle fullscreen or partial here ===
+let isFullscreen = false; // change true/false to pick mode
 
-  // update bricks canvas & layout
+
+// Resize handler 
+function resizeCanvas() {
+
+  // Background always fullscreen
+  backgroundCanvas.width = window.innerWidth;
+  backgroundCanvas.height = window.innerHeight;
+
+  if (isFullscreen) {
+    // Fullscreen game canvas
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.position = "absolute";
+    canvas.style.left = "0";
+    canvas.style.top = "0";
+    canvas.style.transform = "none";
+    canvas.style.border = "none"; // remove border
+    canvas.style.borderRadius = "0";
+    canvas.style.boxShadow = "none";
+
+  } else {
+    // Partial mode (70%)
+    canvas.width = window.innerWidth * 0.8;
+    canvas.height = window.innerHeight * 0.8;
+    canvas.style.position = "absolute";
+    canvas.style.left = "50%";
+    canvas.style.top = "50%";
+    canvas.style.transform = "translate(-50%, -50%)";
+    canvas.style.border = "6px solid  #192b4dff"; // border for partial mode
+    canvas.style.borderRadius = "16px";
+     canvas.style.boxShadow = "0 10px 30px rgba(18, 32, 109, 0.7)";
+  }
+
+  // Update bricks & game objects
   brickManager.canvas = canvas;
   brickManager.calculateBrickLayout();
   brickManager.generateBricks();
-
   // reposition paddle & ball at bottom
   gameState.resetRound();
+
 }
+
 
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas(); // call AFTER creating gameState
+
+
 
 // === Collision helpers ===
 function clamp(v, min, max) {
@@ -87,11 +124,6 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-// === Background stars ===
-const backgroundCanvas = document.getElementById("background");
-backgroundCanvas.width = window.innerWidth;
-backgroundCanvas.height = window.innerHeight;
-const bc = backgroundCanvas.getContext("2d");
 
 const circles = createCircles(100, backgroundCanvas.width, backgroundCanvas.height);
 animate(bc, circles, backgroundCanvas.width, backgroundCanvas.height);
@@ -104,5 +136,13 @@ setupAudio(speakerBtn, bg);
 // === Start button ===
 document.getElementById("start-game-btn").addEventListener("click", function () {
   hideButtonById("start-game-btn");
+  // reset at start of game
   gameLoop();
+});
+
+// change mode button 
+const toggleBtn = document.getElementById("canvas-toggle-btn");
+toggleBtn.addEventListener("click", () => {
+  isFullscreen = !isFullscreen;   // toggle mode
+  resizeCanvas();                  // apply changes
 });

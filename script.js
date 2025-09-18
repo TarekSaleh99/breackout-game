@@ -1,6 +1,20 @@
 import { BrickManager } from "./bricks.js";
 import { GameState } from "./gameState.js";
-import { animate, setupAudio, createCircles, hideButtonById } from "./background.js";
+import { animate, setupAudio, createCircles, hideButtonById, playClickSound } from "./background.js";
+import { DifficultySelector } from "./difficulty.js"; 
+
+
+
+
+const leftArrow = document.getElementById("left");
+const rightArrow = document.getElementById("right");
+const displayElement = document.getElementById("difficulty");
+
+const difficultySelector = new DifficultySelector(leftArrow, rightArrow, displayElement);
+  // ...
+
+// To get the selected difficulty value:
+
 
 // Setup main canvas
 const canvas = document.getElementById("gameCanvas");
@@ -135,7 +149,14 @@ setupAudio(speakerBtn, bg);
 
 // === Start button ===
 document.getElementById("start-game-btn").addEventListener("click", function () {
+  // hide menu buttons when game starts and play click sound
   hideButtonById("start-game-btn");
+  hideButtonById("difficulty-button");
+  hideButtonById("gameName");
+  playClickSound();
+  
+  // it shows the selected difficulty in console (you can use it for selecting brick layout or ball speed etc)
+  console.log(difficultySelector.getValue());
   // reset at start of game
   gameLoop();
 });
@@ -145,4 +166,5 @@ const toggleBtn = document.getElementById("canvas-toggle-btn");
 toggleBtn.addEventListener("click", () => {
   isFullscreen = !isFullscreen;   // toggle mode
   resizeCanvas();                  // apply changes
+  playClickSound();
 });

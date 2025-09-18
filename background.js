@@ -1,5 +1,9 @@
 // background.js
 
+export function playClickSound(src = "Assets/mixkit-game-click.wav") {
+  const audio = new Audio(src);
+  audio.play();
+}
 // Class to handle background audio toggle
 export class AudioManager {
   constructor(speakerBtn, bg, onSrc = "Assets/speaker.png", offSrc = "Assets/speaker-off.png") {
@@ -14,10 +18,12 @@ export class AudioManager {
   _setupAudioToggle() {
     this.speakerBtn.addEventListener("click", () => {
       if (this.isMuted) {
+        playClickSound();
         this.bg.muted = false;
         this.bg.play();
         this.speakerBtn.src = this.onSrc;
       } else {
+        playClickSound();
         this.bg.muted = true;
         this.speakerBtn.src = this.offSrc;
       }

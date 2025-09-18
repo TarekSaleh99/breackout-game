@@ -10,15 +10,31 @@ body {
 
 }
 
+@font-face {
+  font-family: 'SpaceNova';              /* The name you’ll use in CSS/JS */
+  src: url('Fonts/SpaceNova-6Rpd1.otf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+#gameName{
+  font-family: 'SpaceNova', cursive;
+  font-size: 9rem;
+  text-align: center;
+  margin-top: 8%;
+  color: #3abaec; /* Green color */
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
 .scores {
   display: flex;
   gap: 20px;
   justify-content: center;
   padding: 10px;
+  font-family: "Press Start 2P", system-ui;
+  font-weight: 400;
+  font-style: normal;
 }
 
 .scores span {
-  background: #334155;
   padding: 6px 12px;
   border-radius: 6px;
 }
@@ -70,13 +86,15 @@ button:hover {
 
 #start-game-btn {
   position: absolute;
+  font-family: "Press Start 2P", system-ui;
+  font-weight: 400;
+  font-style: normal;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
   background: linear-gradient(180deg, #b0b0b0 0%, #888 100%);
   color: #fff;
-  font-family: 'Roboto', Arial, sans-serif;
-  font-size: 2.5rem;
+  font-size: 2rem;
   padding: 1.5rem 4rem;
   border: none;
   border-radius: 16px;
@@ -117,3 +135,42 @@ button:hover {
   color: white;
   border: none;
 }
+
+
+.difficulty-container {
+  z-index: 20;
+  position: absolute; /* Change from relative to absolute */
+  left: 50%;
+  top: calc(50% + 100px); /* Position below the start button, adjust as needed */
+  transform: translate(-50%, 0);
+  width: auto; /* Only as wide as its content */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(#aaa, #777);
+  border-radius: 12px;
+  padding: 15px 25px;
+  box-shadow: 0 5px #555;
+  font-family: 'Press Start 2P', monospace;
+  user-select: none;
+}
+
+  .arrow {
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px 10px;
+    color: white;
+    text-shadow: 2px 2px #333;
+  }
+
+  .arrow:hover {
+    color: yellow;
+  }
+
+  .difficulty-text {
+    font-size: 18px;
+    color: white;
+    min-width: 120px;
+    text-align: center;
+    text-shadow: 2px 2px #333;
+  }

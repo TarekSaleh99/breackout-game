@@ -1,6 +1,4 @@
-// ball.js
-
-const colorArray = [
+const colorArray = [    //Ball colors
   '#FD8A8A',
   '#eff5abff',
   '#FFCBCB',
@@ -9,26 +7,30 @@ const colorArray = [
 ];
 
 export class Ball {
-  constructor(canvas, paddle, gameState, radius = 25) {
+  constructor(canvas, paddle, gameState, radius = 23) {  //Constructor: called for every new ball
     this.canvas = canvas;
-    this.ctx = canvas.getContext("2d");
+    this.ctx = canvas.getContext("2d");  //Drawing the ball
     this.radius = radius;
     this.gameState = gameState;
 
     // start position relative to paddle
-    this.x = paddle.x + paddle.width / 2;
-    this.y = paddle.y - radius;
+    this.x = paddle.x + paddle.width / 2;  //Starts in the middle of the paddle
+    this.y = paddle.y - radius;  //Starts just above the paddle
 
-    // random direction for horizontal speed
-    this.dx = (Math.random() < 0.5 ? -4 : 4);
-    this.dy = -4;
+    this.speed = 8;
+    //Make the ball start at a random angle slightly right or left
+    const startAngle = (Math.random() - 0.5) * 0.5; // -0.25 to +0.25
+    this.dx = startAngle * this.speed;  //  Small left or right angle
+    this.dy = -Math.sqrt(this.speed ** 2 - this.dx ** 2);  // Keeping the speed constant
 
-    this.color = colorArray[Math.floor(Math.random() * colorArray.length)];
+    this.color = colorArray[Math.floor(Math.random() * colorArray.length)];  //Giving the ball random color from our colorArray
+
+    this.lostLife = false; // track if life has already been lost for this fall
   }
 
   draw() {
     this.ctx.beginPath();
-    this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);  //Draw a full circle
     this.ctx.fillStyle = this.color;
     this.ctx.fill();
     this.ctx.strokeStyle = "gray";
@@ -37,39 +39,69 @@ export class Ball {
   }
 
   update(paddle) {
-    this.x += this.dx;
-    this.y += this.dy;
+    this.x += this.dx;  // Move ball horizontally
+    this.y += this.dy;  // Move ball vertically
 
-    // wall collisions
-    if (this.x + this.radius > this.canvas.width || this.x - this.radius < 0) {
+    // wall collisions (left & right) - Pushing ball to stop ball vibration with wall
+    if (this.x + this.radius > this.canvas.width) {
+      this.x = this.canvas.width - this.radius;
+      this.dx = -this.dx;
+    }
+    if (this.x - this.radius < 0) {
+      this.x = this.radius;
       this.dx = -this.dx;
     }
 
+    // top wall collision
     if (this.y - this.radius < 0) {
+      this.y = this.radius;
       this.dy = -this.dy;
     }
 
     // paddle collision
     if (
       this.y + this.radius > paddle.y &&
-      this.x > paddle.x &&
-      this.x < paddle.x + paddle.width
+      this.y - this.radius < paddle.y + paddle.height &&
+      this.x >= paddle.x &&  //paddle edge included
+      this.x <= paddle.x + paddle.width //paddle edge included
     ) {
-      this.dy = -this.dy;
-      // optional: nudge based on where on paddle it hit
+
+      // relative hit position (-0.5 = left edge, 0 = center, +0.5 = right edge)
       const hitPos = (this.x - paddle.x) / paddle.width - 0.5;
-      this.dx += hitPos * 2; // small spin
+
+      // new dx proportional to hit position
+      this.dx = hitPos * this.speed * 2;
+
+      // adjust dy so total speed remains constant (normalizing speed after collision with paddle)
+      const newSpeed = Math.sqrt(this.dx ** 2 + this.dy ** 2);
+      this.dx = (this.dx / newSpeed) * this.speed;
+      this.dy = -(Math.sqrt(this.speed ** 2 - this.dx ** 2));
     }
 
-    // bottom of screen → lose life
-    if (this.y + this.radius > this.canvas.height) {
-      if (this.gameState && typeof this.gameState.loseLife === "function") {
+    // bottom of screen → lose life (only if not hitting paddle)
+    if (
+      this.y + this.radius > this.canvas.height &&
+      !(this.x >= paddle.x && this.x <= paddle.x + paddle.width &&
+        this.y - this.radius < paddle.y + paddle.height)
+    ) {
+      if (!this.lostLife) {
+        this.lostLife = true;
         this.gameState.loseLife();
-      } else {
-        // fallback: just reset Y to top if no gameState provided
-        this.y = this.canvas.height / 2;
-        this.dy = -Math.abs(this.dy);
       }
     }
+  }
+
+  reset(paddle) {
+    // position ball above paddle
+    this.x = paddle.x + paddle.width / 2;  // reposition ball in the center of the paddle
+    this.y = paddle.y - this.radius - 2; // a little above paddle
+
+    // Keeping constant speed with random angle after losing life
+    const startAngle = (Math.random() - 0.5) * 0.5;
+    this.dx = startAngle * this.speed;
+    this.dy = -Math.sqrt(this.speed ** 2 - this.dx ** 2);
+
+    // clear lostLife flag
+    this.lostLife = false;
   }
 }

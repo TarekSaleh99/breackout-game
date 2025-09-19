@@ -1,5 +1,3 @@
-// gameState.js
-
 import { Paddle } from "./Paddle.js";
 import { Ball } from "./ball.js";
 
@@ -25,23 +23,27 @@ export class GameState {
   // Lose a life when ball misses the paddle
   loseLife() {
     this.lives--;
+    this.updateHUD();
+
     if (this.lives <= 0) {
+      // Game over → stop the game loop
+      this.isGameOver = true;
       this.gameOver();
     } else {
-      this.resetRound();
+      // Just reset the ball above the current paddle
+      this.ball.reset(this.paddle);
     }
-    this.updateHUD();
   }
 
-  // Reset ball & paddle positions (recreate so constructors re-init position)
+  // Reset ball & paddle positions (for new game / resize)
   resetRound() {
     this.paddle = new Paddle(this.canvas);
     this.ball = new Ball(this.canvas, this.paddle, this);
+    this.updateHUD();
   }
 
   // Game over state
   gameOver() {
-    this.isGameOver = true;
     alert("Game Over");
   }
 }

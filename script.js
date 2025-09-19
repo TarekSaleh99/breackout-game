@@ -90,8 +90,20 @@ function circleRectCollision(circle, rect) {
   return dx * dx + dy * dy <= circle.radius * circle.radius;
 }
 
-// === Score ===
+// === Score  And High Score===
 let score = 0;
+// NOTE:(localStorage.getItem returns string or null)fix using paresInt
+let highScore = parseInt(localStorage.getItem('highScore') || 0);
+document.getElementById('highScore').textContent = highScore;
+
+function updateHighScore() {
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('highScore', highScore);
+    document.getElementById('highScore').textContent = highScore;
+  }
+}
+
 function handleBallBrickCollisions() {
   const ball = gameState.ball;
   for (const brick of brickManager.bricks) {
@@ -101,6 +113,8 @@ function handleBallBrickCollisions() {
       score += 10;
       const scoreEl = document.getElementById("score");
       if (scoreEl) scoreEl.textContent = score;
+
+      updateHighScore(); //update high score immediately
 
       // Bounce ball
       const closestX = clamp(ball.x, brick.x, brick.x + brick.width);
@@ -113,6 +127,20 @@ function handleBallBrickCollisions() {
       break;
     }
   }
+}
+
+// === Win condition ===
+function checkWinCondition() {
+  // check if all bricks are destroyed 
+  // (every) return true if all item meets the condition
+  const allCleared = brickManager.bricks.every(brick => brick.status === 0);
+  if (allCleared) {
+    gameState.isGameOver = true;
+    alert('You Win!');
+    updateHighScore();
+    return true;
+  }
+  return false;
 }
 
 // === Game Loop ===
@@ -135,6 +163,8 @@ function gameLoop() {
   handleBallBrickCollisions();
   ball.draw();
 
+
+  if (checkWinCondition()) return;
   requestAnimationFrame(gameLoop);
 }
 

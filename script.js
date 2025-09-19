@@ -27,9 +27,19 @@ const ctx = canvas.getContext("2d");
 const backgroundCanvas = document.getElementById("background");
 const bc = backgroundCanvas.getContext("2d");
 
-//  Create game objects 
-const gameState = new GameState(canvas); // paddle & ball initialized correctly
+//  Create game objects with callbacks
+let gameState = new GameState(canvas, 3, {
+  onGameOver: () => backToMenu(),       // when lives = 0
+});
+
 const brickManager = new BrickManager(canvas);
+
+
+// === Difficulty + Level system ===
+let currentDifficulty = null;
+let currentLevel = 1;
+const max_level = 3; 
+
 
 // === Toggle fullscreen or partial here ===
 let isFullscreen = false; // change true/false to pick mode
@@ -177,12 +187,31 @@ function checkWinCondition() {
   // (every) return true if all item meets the condition
   const allCleared = brickManager.bricks.every(brick => brick.status === 0);
   if (allCleared) {
-    gameState.isGameOver = true;
-    alert('You Win!');
-    updateHighScore();
+    // Level cleared
+    if (currentLevel < max_level) {
+      currentLevel++;
+      alert(`Level ${currentLevel - 1} cleared! Moving to Level ${currentLevel}`);
+      brickManager.calculateBrickLayout();
+      brickManager.generateBricks();
+      gameState.resetRound();
+      gameLoop(); // Restart game loop for next level
+    } else {
+      // Difficulty cleared
+      alert(`🎉 You beat ${currentDifficulty}! Returning to menu.`);
+       backToMenu();
+    }
     return true;
   }
   return false;
+}
+// === Back to Menu ===
+function backToMenu() {
+  gameState.isGameOver = true;
+  document.getElementById("start-game-btn").style.display = "inline-block";
+  document.getElementById("difficulty-button").style.display = "flex";
+  document.getElementById("gameName").style.display = "block";
+  score = 0;
+  document.getElementById("score").textContent = score;
 }
 
 // === Game Loop ===
@@ -275,9 +304,18 @@ document.getElementById("start-game-btn").addEventListener("click", function () 
   hideButtonById("gameName");
   hideButtonById("canvas-toggle-btn");   //  hide toggle button
   playClickSound();
+
+  currentDifficulty = difficultySelector.getValue();
+  currentLevel = 1; // reset level
+
+  gameState = new GameState(canvas, 3, {
+    onGameOver: () => backToMenu(),
+  });
+
+  brickManager.calculateBrickLayout();
+  brickManager.generateBricks();
+  gameState.resetRound();
   
-  // it shows the selected difficulty in console (you can use it for selecting brick layout or ball speed etc)
-  console.log(difficultySelector.getValue());
   // reset at start of game
   gameLoop();
 });

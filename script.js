@@ -2,6 +2,12 @@ import { BrickManager } from "./bricks.js";
 import { GameState } from "./gameState.js";
 import { animate, setupAudio, createCircles, hideButtonById, playClickSound } from "./background.js";
 import { DifficultySelector } from "./difficulty.js"; 
+//import powerups
+import { PowerUp } from "./powerups.js";
+
+
+//declare power-ups array
+let powerUps = [];
 
 
 const leftArrow = document.getElementById("left");
@@ -68,13 +74,13 @@ function resizeCanvas() {
     canvas.style.transform = "translate(-50%, -50%)";
     canvas.style.border = "6px solid  #192b4dff"; // border for partial mode
     canvas.style.borderRadius = "16px";
-     canvas.style.boxShadow = "0 10px 30px rgba(18, 32, 109, 0.7)";
+    canvas.style.boxShadow = "0 10px 30px rgba(18, 32, 109, 0.7)";
   }
 
-  // Update bricks & game objects
-  brickManager.canvas = canvas;
-  brickManager.calculateBrickLayout();
-  brickManager.generateBricks();
+  // Update bricks size/position only, keep same layout
+  //brickManager.canvas = canvas;
+  brickManager.resize(canvas);
+  
   // reposition paddle & ball at bottom
   gameState.resetRound();
 
@@ -112,13 +118,20 @@ function updateHighScore() {
   }
 }
 
+
+// handle collision between ball & bricks
 function handleBallBrickCollisions() {
   const ball = gameState.ball;
+
   for (const brick of brickManager.bricks) {
     if (brick.status !== 1) continue;
+
     if (circleRectCollision(ball, brick)) {
+      // Always destroy the brick
       brick.status = 0;
       score += 10;
+
+
       const scoreEl = document.getElementById("score");
       if (scoreEl) scoreEl.textContent = score;
 
@@ -129,10 +142,41 @@ function handleBallBrickCollisions() {
       const closestY = clamp(ball.y, brick.y, brick.y + brick.height);
       const dx = ball.x - closestX;
       const dy = ball.y - closestY;
-      if (Math.abs(dx) > Math.abs(dy)) ball.dx = -ball.dx;
-      else ball.dy = -ball.dy;
 
-      break;
+      if (Math.abs(dx) > Math.abs(dy)){
+        ball.dx = -ball.dx;
+         // push ball outside horizontally
+        ball.x = dx > 0 ? brick.x + brick.width + ball.radius : brick.x - ball.radius;
+      } else {
+        ball.dy = -ball.dy;
+        // push ball outside vertically
+        ball.y = dy > 0 ? brick.y + brick.height + ball.radius : brick.y - ball.radius;
+      }
+
+      /* 20% chance to drop a power-up
+      if (Math.random() < 0.2) {
+        const types = ["expand", "shrink", "extraLife"];
+        const type = types[Math.floor(Math.random() * types.length)];
+        powerUps.push(new PowerUp(brick.x, brick.y, type));
+      }*/
+
+
+      // 20% chance to drop a power-up
+      if (Math.random() < 0.2) {
+        const types = ["expand", "shrink", "extraLife"];
+        const type = types[Math.floor(Math.random() * types.length)];
+
+        // spawn centered in the brick
+        powerUps.push(
+          new PowerUp(
+            brick.x + brick.width / 2 - 15,
+            brick.y + brick.height / 2 - 10,
+            type
+          )
+        );
+      }
+
+   
     }
   }
 }
@@ -189,11 +233,59 @@ function gameLoop() {
   ball.update(paddle);
   handleBallBrickCollisions();
   ball.draw();
+  
 
+  //  Power-ups
+  for (let pu of powerUps) {
+    pu.update();
+    pu.draw(ctx);
 
+    // Check paddle collision
+    if (
+      pu.y + pu.height >= paddle.y &&
+      pu.x < paddle.x + paddle.width &&
+      pu.x + pu.width > paddle.x
+    ) {
+      applyPowerUp(pu.type);
+      pu.active = false;
+    }
+
+    // Remove if it falls off screen
+    if (pu.y > canvas.height) {
+      pu.active = false;
+    }
+  }
+  powerUps = powerUps.filter(p => p.active);
+   
   if (checkWinCondition()) return;
   requestAnimationFrame(gameLoop);
 }
+
+
+//apply effect of power-ups
+function applyPowerUp(type) {
+  const paddle = gameState.paddle;
+
+  switch (type) {
+    case "expand":
+      paddle.width *= 1.5;
+      setTimeout(() => paddle.width /= 1.5, 10000); // back after 10s
+      break;
+
+    case "shrink":
+      paddle.width *= 0.7;
+      setTimeout(() => paddle.width /= 0.7, 10000);
+      break;
+
+    case "extraLife":
+      gameState.lives++;
+      gameState.updateHUD();
+      break;
+
+
+  }
+}
+
 
 
 const circles = createCircles(100, backgroundCanvas.width, backgroundCanvas.height);
@@ -210,6 +302,7 @@ document.getElementById("start-game-btn").addEventListener("click", function () 
   hideButtonById("start-game-btn");
   hideButtonById("difficulty-button");
   hideButtonById("gameName");
+  hideButtonById("canvas-toggle-btn");   //  hide toggle button
   playClickSound();
 
   currentDifficulty = difficultySelector.getValue();

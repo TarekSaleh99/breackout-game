@@ -38,7 +38,16 @@ export class BrickManager {
     this.brickHeight = 0;
     this.brickOffsetTop = 0;
     this.brickOffsetLeft = 0;
+
+    //NEW: store possible layouts once
+    this.layouts = ["grid", "pyramid", "checker", "diamond", "zigzag"];
+
+    // NEW: choose ONE layout for this game
+    this.currentLayout = this.layouts[Math.floor(Math.random() * this.layouts.length)];
+
+
     this.calculateBrickLayout();
+    this.generateBricks();
   }
 
   calculateBrickLayout() {
@@ -52,18 +61,28 @@ export class BrickManager {
 
   generateBricks() {
     this.bricks = [];
-    const layouts = ["grid", "pyramid", "checker", "diamond", "random", "zigzag"];
-    const currentLayout = layouts[Math.floor(Math.random() * layouts.length)];
+    
+    //use the stored layout instead of picking a new one every time
+    const currentLayout = this.currentLayout;
+
     switch (currentLayout) {
       case "grid": this.generateGrid(); break;
       case "pyramid": this.generatePyramid(); break;
       case "checker": this.generateChecker(); break;
       case "diamond": this.generateDiamond(); break;
-      case "random": this.generateRandom(); break;
       case "zigzag": this.generateZigZag(); break;
     }
     console.log("Generated layout:", currentLayout);
   }
+
+
+  //  NEW: allow reusing the same layout after resize
+  resize(canvas) {
+    this.canvas = canvas;
+    this.calculateBrickLayout();
+    this.generateBricks();
+  }
+
 
   generateGrid() {
     for (let row = 0; row < BRICK_ROWS; row++) {
@@ -114,17 +133,6 @@ export class BrickManager {
         const y = this.brickOffsetTop + row * (this.brickHeight + BRICK_PADDING_Y);
         this.bricks.push(this.makeBrick(x, y));
       }
-    }
-  }
-
-  generateRandom() {
-    const brickCount = Math.floor((BRICK_ROWS * BRICK_COLS) * 0.5);
-    for (let i = 0; i < brickCount; i++) {
-      const col = Math.floor(Math.random() * BRICK_COLS);
-      const row = Math.floor(Math.random() * BRICK_ROWS);
-      const x = this.brickOffsetLeft + col * (this.brickWidth + BRICK_PADDING_X);
-      const y = this.brickOffsetTop + row * (this.brickHeight + BRICK_PADDING_Y);
-      this.bricks.push(this.makeBrick(x, y));
     }
   }
 

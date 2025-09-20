@@ -1,24 +1,20 @@
 import { BrickManager } from "./bricks.js";
 import { GameState } from "./gameState.js";
 import { animate, setupAudio, createCircles, hideButtonById, playClickSound } from "./background.js";
-import { DifficultySelector } from "./difficulty.js"; 
+import { DifficultySelector, GameConfigManager } from "./difficulty.js"; 
 //import powerups
 import { PowerUp } from "./powerups.js";
 
-
 //declare power-ups array
 let powerUps = [];
-
 
 const leftArrow = document.getElementById("left");
 const rightArrow = document.getElementById("right");
 const displayElement = document.getElementById("difficulty");
 
+// Initialize difficulty selector and game config manager
 const difficultySelector = new DifficultySelector(leftArrow, rightArrow, displayElement);
-  // ...
-
-// To get the selected difficulty value:
-
+const gameConfigManager = new GameConfigManager();
 
 // Setup main canvas
 const canvas = document.getElementById("gameCanvas");
@@ -34,20 +30,11 @@ let gameState = new GameState(canvas, 3, {
 
 const brickManager = new BrickManager(canvas);
 
-
-// === Difficulty + Level system ===
-let currentDifficulty = null;
-let currentLevel = 1;
-const max_level = 3; 
-
-
 // === Toggle fullscreen or partial here ===
 let isFullscreen = false; // change true/false to pick mode
 
-
 // Resize handler 
 function resizeCanvas() {
-
   // Background always fullscreen
   backgroundCanvas.width = window.innerWidth;
   backgroundCanvas.height = window.innerHeight;
@@ -65,7 +52,7 @@ function resizeCanvas() {
     canvas.style.boxShadow = "none";
 
   } else {
-    // Partial mode (70%)
+    // Partial mode (80%)
     canvas.width = window.innerWidth * 0.8;
     canvas.height = window.innerHeight * 0.8;
     canvas.style.position = "absolute";
@@ -78,19 +65,14 @@ function resizeCanvas() {
   }
 
   // Update bricks size/position only, keep same layout
-  //brickManager.canvas = canvas;
   brickManager.resize(canvas);
   
   // reposition paddle & ball at bottom
   gameState.resetRound();
-
 }
-
 
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas(); // call AFTER creating gameState
-
-
 
 // === Collision helpers ===
 function clamp(v, min, max) {
@@ -106,7 +88,7 @@ function circleRectCollision(circle, rect) {
 
 // === Score  And High Score===
 let score = 0;
-// NOTE:(localStorage.getItem returns string or null)fix using paresInt
+// NOTE:(localStorage.getItem returns string or null)fix using parseInt
 let highScore = parseInt(localStorage.getItem('highScore') || 0);
 document.getElementById('highScore').textContent = highScore;
 
@@ -118,19 +100,22 @@ function updateHighScore() {
   }
 }
 
-
 // handle collision between ball & bricks
 function handleBallBrickCollisions() {
   const ball = gameState.ball;
+  const currentSettings = gameConfigManager.getCurrentSettings();
 
   for (const brick of brickManager.bricks) {
     if (brick.status !== 1) continue;
 
     if (circleRectCollision(ball, brick)) {
-      // Always destroy the brick
-      brick.status = 0;
-      score += 10;
-
+      // Hit the brick and check if it's destroyed
+      const isDestroyed = brick.hit();
+      
+      // Calculate score based on brick durability and difficulty multiplier
+      const basePoints = isDestroyed ? (10 * brick.maxHits) : 5;
+      const pointsEarned = Math.floor(basePoints * currentSettings.scoringMultiplier);
+      score += pointsEarned;
 
       const scoreEl = document.getElementById("score");
       if (scoreEl) scoreEl.textContent = score;
@@ -153,16 +138,8 @@ function handleBallBrickCollisions() {
         ball.y = dy > 0 ? brick.y + brick.height + ball.radius : brick.y - ball.radius;
       }
 
-      /* 20% chance to drop a power-up
-      if (Math.random() < 0.2) {
-        const types = ["expand", "shrink", "extraLife"];
-        const type = types[Math.floor(Math.random() * types.length)];
-        powerUps.push(new PowerUp(brick.x, brick.y, type));
-      }*/
-
-
-      // 20% chance to drop a power-up
-      if (Math.random() < 0.2) {
+      // Only drop power-ups when brick is completely destroyed
+      if (isDestroyed && Math.random() < 0.2) {
         const types = ["expand", "shrink", "extraLife"];
         const type = types[Math.floor(Math.random() * types.length)];
 
@@ -175,8 +152,6 @@ function handleBallBrickCollisions() {
           )
         );
       }
-
-   
     }
   }
 }
@@ -187,31 +162,68 @@ function checkWinCondition() {
   // (every) return true if all item meets the condition
   const allCleared = brickManager.bricks.every(brick => brick.status === 0);
   if (allCleared) {
-    // Level cleared
-    if (currentLevel < max_level) {
-      currentLevel++;
-      alert(`Level ${currentLevel - 1} cleared! Moving to Level ${currentLevel}`);
-      brickManager.calculateBrickLayout();
-      brickManager.generateBricks();
+    // Try to advance to next level
+    const result = gameConfigManager.advanceLevel();
+    
+    if (result.success) {
+      // Move to next level
+      alert(result.message);
+      
+      // Generate new bricks with updated settings
+      brickManager.generateBricks(result.settings);
+      
+      // Update ball speed
+      gameState.ball.setSpeedFromConfig(result.settings);
+      
       gameState.resetRound();
       gameLoop(); // Restart game loop for next level
     } else {
-      // Difficulty cleared
-      alert(`🎉 You beat ${currentDifficulty}! Returning to menu.`);
-       backToMenu();
+      // Difficulty completed
+      alert(result.message);
+      backToMenu();
     }
     return true;
   }
   return false;
 }
+
+// === Check game over conditions ===
+function checkBricksReachedBottom() {
+  // Check if moving bricks reached the bottom (Medium/Hard mode)
+  if (brickManager.checkGameOver()) {
+    // Lose a life but continue playing
+    gameState.loseLife();
+    
+    // Reset all remaining bricks to their original positions
+    const resetCount = brickManager.resetBrickPositions();
+    
+    // Show message to player
+    if (gameState.lives > 0) {
+      alert(`Bricks reached the bottom! Life lost. ${resetCount} bricks reset to original positions.`);
+    }
+    
+    return true; // Bricks reached bottom
+  }
+  return false;
+}
+
 // === Back to Menu ===
 function backToMenu() {
   gameState.isGameOver = true;
   document.getElementById("start-game-btn").style.display = "inline-block";
   document.getElementById("difficulty-button").style.display = "flex";
   document.getElementById("gameName").style.display = "block";
+  document.getElementById("canvas-toggle-btn").style.display = "inline-block";
+  
+  // Reset game state
   score = 0;
   document.getElementById("score").textContent = score;
+  
+  // Reset configuration manager
+  gameConfigManager.reset();
+  
+  // Clear power-ups
+  powerUps = [];
 }
 
 // === Game Loop ===
@@ -219,6 +231,15 @@ function gameLoop() {
   if (gameState.isGameOver) return;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Update bricks first
+  brickManager.update();
+  
+  // Check if bricks reached bottom (loses life but continues game)
+  checkBricksReachedBottom();
+  
+  // Check if game is over after potential life loss
+  if (gameState.isGameOver) return;
 
   // Bricks
   brickManager.drawBricks(ctx);
@@ -234,7 +255,6 @@ function gameLoop() {
   handleBallBrickCollisions();
   ball.draw();
   
-
   //  Power-ups
   for (let pu of powerUps) {
     pu.update();
@@ -261,7 +281,6 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-
 //apply effect of power-ups
 function applyPowerUp(type) {
   const paddle = gameState.paddle;
@@ -281,12 +300,8 @@ function applyPowerUp(type) {
       gameState.lives++;
       gameState.updateHUD();
       break;
-
-
   }
 }
-
-
 
 const circles = createCircles(100, backgroundCanvas.width, backgroundCanvas.height);
 animate(bc, circles, backgroundCanvas.width, backgroundCanvas.height);
@@ -305,18 +320,32 @@ document.getElementById("start-game-btn").addEventListener("click", function () 
   hideButtonById("canvas-toggle-btn");   //  hide toggle button
   playClickSound();
 
-  currentDifficulty = difficultySelector.getValue();
-  currentLevel = 1; // reset level
+  // Initialize game with selected difficulty
+  const selectedDifficulty = difficultySelector.getValue();
+  gameConfigManager.initialize(selectedDifficulty);
+  
+  // Get current settings
+  const currentSettings = gameConfigManager.getCurrentSettings();
+  
+  console.log("Starting game with settings:", currentSettings);
 
+  // Create new game state
   gameState = new GameState(canvas, 3, {
     onGameOver: () => backToMenu(),
   });
 
-  brickManager.calculateBrickLayout();
-  brickManager.generateBricks();
+  // Generate bricks with current settings
+  brickManager.generateBricks(currentSettings);
+  
+  // Set ball speed
+  gameState.ball.setSpeedFromConfig(currentSettings);
+  
   gameState.resetRound();
   
-  // reset at start of game
+  // reset score at start of game
+  score = 0;
+  document.getElementById("score").textContent = score;
+  
   gameLoop();
 });
 

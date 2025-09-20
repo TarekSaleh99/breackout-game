@@ -203,6 +203,7 @@ function checkWinCondition() {
         backToMenu();
       });
 
+
     }
     return true;
   }
@@ -221,7 +222,11 @@ function checkBricksReachedBottom() {
     
     // Show message to player
     if (gameState.lives > 0) {
+
       gameState.showLivesLostAnimation();
+
+      showLivesLostAnimation();
+
       //alert(`Bricks reached the bottom! Life lost. ${resetCount} bricks reset to original positions.`);
     }
     
@@ -235,6 +240,7 @@ function backToMenu() {
   gameState.isGameOver = true;
 
   document.getElementById("game-over-container").style.display = "none";
+
   //second line related to issue 1 :
   document.getElementById("win-container").style.display = "none";  
   document.getElementById("menu-container").style.display = "block";
@@ -385,6 +391,7 @@ document.getElementById("start-game-btn").addEventListener("click", function () 
 
 
 
+
 //here where issue 1 was third change
 document.getElementById("exit-btn-gameover").addEventListener("click", () => {
   playClickSound();
@@ -396,6 +403,7 @@ document.getElementById("exit-btn-win").addEventListener("click", () => {
   playClickSound();
   backToMenu();
 });
+
 
 
 document.getElementById("try-again-btn").addEventListener("click", function () {

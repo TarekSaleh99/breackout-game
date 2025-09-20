@@ -13,11 +13,16 @@ export class Ball {
     this.radius = radius;
     this.gameState = gameState;
 
+    // Base speed properties for difficulty system
+    this.baseSpeed = 8; // Your original speed
+    this.currentSpeedMultiplier = 1; // Will be set by difficulty system
+
     // start position relative to paddle
     this.x = paddle.x + paddle.width / 2;  //Starts in the middle of the paddle
     this.y = paddle.y - radius;  //Starts just above the paddle
 
-    this.speed = 8;
+    // Initialize with base speed
+    this.speed = this.baseSpeed;
     //Make the ball start at a random angle slightly right or left
     const startAngle = (Math.random() - 0.5) * 0.5; // -0.25 to +0.25
     this.dx = startAngle * this.speed;  //  Small left or right angle
@@ -26,6 +31,53 @@ export class Ball {
     this.color = colorArray[Math.floor(Math.random() * colorArray.length)];  //Giving the ball random color from our colorArray
 
     this.lostLife = false; // track if life has already been lost for this fall
+  }
+
+  // Set speed based on game configuration (integrates with difficulty system)
+  setSpeedFromConfig(gameSettings) {
+    this.currentSpeedMultiplier = gameSettings.ballSpeedMultiplier;
+    this.speed = this.baseSpeed * this.currentSpeedMultiplier;
+    
+    // Update dx and dy to maintain the new speed while preserving direction
+    const currentMagnitude = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
+    if (currentMagnitude > 0) {
+      this.dx = (this.dx / currentMagnitude) * this.speed;
+      this.dy = (this.dy / currentMagnitude) * this.speed;
+    }
+    
+    console.log(`Ball speed updated: ${this.baseSpeed} * ${this.currentSpeedMultiplier} = ${this.speed}`);
+  }
+
+  // Legacy method for direct speed setting (maintains compatibility)
+  setSpeed(difficulty, level) {
+    let speedMultiplier = 1;
+    
+    switch (difficulty) {
+      case "Easy":
+        // Level 1: 1x, Level 2: 1.2x, Level 3: 1.4x
+        speedMultiplier = 1 + ((level - 1) * 0.2);
+        break;
+        
+      case "Medium":
+        // Level 1: 1.3x, Level 2: 1.6x, Level 3: 1.9x
+        speedMultiplier = 1.3 + ((level - 1) * 0.3);
+        break;
+        
+      case "Hard":
+        // Level 1: 1.5x, Level 2: 2.0x, Level 3: 2.5x
+        speedMultiplier = 1.5 + ((level - 1) * 0.5);
+        break;
+    }
+    
+    this.currentSpeedMultiplier = speedMultiplier;
+    this.speed = this.baseSpeed * speedMultiplier;
+    
+    // Update dx and dy to maintain the new speed
+    const currentMagnitude = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
+    if (currentMagnitude > 0) {
+      this.dx = (this.dx / currentMagnitude) * this.speed;
+      this.dy = (this.dy / currentMagnitude) * this.speed;
+    }
   }
 
   draw() {

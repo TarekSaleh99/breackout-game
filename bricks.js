@@ -10,22 +10,122 @@ const LOWER_ROW_FILL_CHANCE = 0.8; // randomness for grid layout
 
 // === Single Brick Class ===
 export class Brick {
-  constructor(x, y, width, height, color) {
+  constructor(x, y, width, height, color, maxHits = 1) {
     this.x = x;
     this.y = y;
+    this.originalY = y; // Store original position for reference
     this.width = width;
     this.height = height;
     this.status = 1; // 1 = visible, 0 = destroyed
     this.color = color;
+    this.maxHits = maxHits; // How many hits needed to destroy
+    this.currentHits = 0; // How many times it's been hit
+
+    // Movement properties (set by brick manager)
+    this.moveSpeed = 0;
+    this.isMoving = false;
+
+    // Visual effect properties
+    this.particles = [];
+    this.isDamaged = false;
+  }
+
+  // Update brick position (for moving bricks)
+  update() {
+    if (this.isMoving && this.status === 1) {
+      this.y += this.moveSpeed;
+    }
+
+    // Update particles
+    this.particles = this.particles.filter(particle => {
+      particle.update();
+      return particle.life > 0;
+    });
+  }
+
+  // Check if brick reached bottom
+  hasReachedBottom(canvasHeight) {
+    return this.y + this.height >= canvasHeight * 0.95; // 95% down the canvas
+  }
+
+  // Reset brick to original position
+  resetPosition() {
+    this.y = this.originalY;
+  }
+
+  // Hit the brick
+  hit() {
+    this.currentHits++;
+
+    if (this.currentHits < this.maxHits) {
+      // Brick is damaged but not destroyed
+      this.isDamaged = true;
+      return false; // Not destroyed yet
+    } else {
+      // Brick is destroyed
+      this.status = 0;
+      this.createDestroyEffect();
+      return true; // Destroyed
+    }
+  }
+  
+  // Create destruction effect (particles)
+  createDestroyEffect() {
+    const particleCount = 8;
+    for (let i = 0; i < particleCount; i++) {
+      this.particles.push({
+        x: this.x + this.width / 2,
+        y: this.y + this.height / 2,
+        vx: (Math.random() - 0.5) * 8,
+        vy: (Math.random() - 0.5) * 8,
+        life: 30,
+        maxLife: 30,
+        color: this.color,
+        size: Math.random() * 4 + 2,
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          this.vy += 0.2; // gravity
+          this.life--;
+          this.vx *= 0.98; // friction
+        }
+      });
+    }
   }
 
   draw(ctx) {
     if (this.status === 1) {
+      // Draw main brick
       ctx.fillStyle = this.color;
       ctx.fillRect(this.x, this.y, this.width, this.height);
+
+      // Draw border
       ctx.strokeStyle = "#000";
       ctx.strokeRect(this.x, this.y, this.width, this.height);
+
+      // Draw damage cracks if damaged
+      if (this.isDamaged) {
+        ctx.strokeStyle = "#000000ff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(this.x + 2, this.y + this.height / 2);
+        ctx.lineTo(this.x + this.width - 2, this.y + this.height / 2);
+        ctx.moveTo(this.x + this.width / 2, this.y + 2);
+        ctx.lineTo(this.x + this.width / 2, this.y + this.height - 2);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+      }
     }
+
+    // Draw particles
+    this.particles.forEach(particle => {
+      ctx.save();
+      ctx.globalAlpha = particle.life / particle.maxLife;
+      ctx.fillStyle = particle.color;
+      ctx.fillRect(particle.x - particle.size / 2, particle.y - particle.size / 2,
+        particle.size, particle.size);
+      ctx.restore();
+    });
   }
 }
 
@@ -39,15 +139,13 @@ export class BrickManager {
     this.brickOffsetTop = 0;
     this.brickOffsetLeft = 0;
 
-    //NEW: store possible layouts once
+    // Store possible layouts once
     this.layouts = ["grid", "pyramid", "checker", "diamond", "zigzag"];
 
-    // NEW: choose ONE layout for this game
+    // Choose ONE layout for this game
     this.currentLayout = this.layouts[Math.floor(Math.random() * this.layouts.length)];
 
-
     this.calculateBrickLayout();
-    this.generateBricks();
   }
 
   calculateBrickLayout() {
@@ -59,109 +157,193 @@ export class BrickManager {
     this.brickWidth = Math.floor(innerWidth / BRICK_COLS);
   }
 
-  generateBricks() {
+  // Generate bricks using game configuration
+  generateBricks(gameSettings) {
     this.bricks = [];
-    
-    //use the stored layout instead of picking a new one every time
+
+    console.log("Generating bricks with settings:", gameSettings);
+
+    // Use the stored layout
     const currentLayout = this.currentLayout;
 
     switch (currentLayout) {
-      case "grid": this.generateGrid(); break;
-      case "pyramid": this.generatePyramid(); break;
-      case "checker": this.generateChecker(); break;
-      case "diamond": this.generateDiamond(); break;
-      case "zigzag": this.generateZigZag(); break;
+      case "grid": this.generateGrid(gameSettings); break;
+      case "pyramid": this.generatePyramid(gameSettings); break;
+      case "checker": this.generateChecker(gameSettings); break;
+      case "diamond": this.generateDiamond(gameSettings); break;
+      case "zigzag": this.generateZigZag(gameSettings); break;
     }
-    console.log("Generated layout:", currentLayout);
+
+    console.log(`Generated ${this.bricks.length} bricks for ${gameSettings.difficulty} Level ${gameSettings.level}`);
   }
 
+  // Update all bricks
+  update() {
+    this.bricks.forEach(brick => {
+      brick.update();
+    });
+  }
 
-  //  NEW: allow reusing the same layout after resize
+  // Check if any moving brick reached the bottom
+  checkGameOver() {
+    return this.bricks.some(brick =>
+      brick.status === 1 && brick.isMoving && brick.hasReachedBottom(this.canvas.height)
+    );
+  }
+
+  // Reset all remaining bricks to original positions (used when bricks reach bottom)
+  resetBrickPositions() {
+    let resetCount = 0;
+    this.bricks.forEach(brick => {
+      if (brick.status === 1) { // Only reset bricks that are still active
+        brick.resetPosition();
+        resetCount++;
+      }
+    });
+    console.log(`Reset ${resetCount} bricks to original positions`);
+    return resetCount;
+  }
+
+  // Allow reusing the same layout after resize
   resize(canvas) {
     this.canvas = canvas;
     this.calculateBrickLayout();
-    this.generateBricks();
   }
 
+  generateGrid(settings) {
+    const maxRows = settings.brickRowCount;
 
-  generateGrid() {
-    for (let row = 0; row < BRICK_ROWS; row++) {
+    for (let row = 0; row < maxRows; row++) {
       for (let col = 0; col < BRICK_COLS; col++) {
         const x = this.brickOffsetLeft + col * (this.brickWidth + BRICK_PADDING_X);
         const y = this.brickOffsetTop + row * (this.brickHeight + BRICK_PADDING_Y);
         let shouldCreate = false;
         if (row === 0 || row === 2) shouldCreate = true;
         else if (Math.random() < LOWER_ROW_FILL_CHANCE) shouldCreate = true;
-        if (shouldCreate) this.bricks.push(this.makeBrick(x, y));
+
+        if (shouldCreate) {
+          const brick = this.makeBrick(x, y, settings);
+          this.bricks.push(brick);
+        }
       }
     }
   }
 
-  generatePyramid() {
-    for (let row = 0; row < BRICK_ROWS; row++) {
+  generatePyramid(settings) {
+    const maxRows = settings.brickRowCount;
+
+    for (let row = 0; row < maxRows; row++) {
       const startCol = row;
       const endCol = BRICK_COLS - row;
       if (endCol <= startCol) break;
       for (let col = startCol; col < endCol; col++) {
         const x = this.brickOffsetLeft + col * (this.brickWidth + BRICK_PADDING_X);
         const y = this.brickOffsetTop + row * (this.brickHeight + BRICK_PADDING_Y);
-        this.bricks.push(this.makeBrick(x, y));
+        const brick = this.makeBrick(x, y, settings);
+        this.bricks.push(brick);
       }
     }
   }
 
-  generateChecker() {
-    for (let row = 0; row < BRICK_ROWS; row++) {
+  generateChecker(settings) {
+    const maxRows = settings.brickRowCount;
+
+    for (let row = 0; row < maxRows; row++) {
       for (let col = 0; col < BRICK_COLS; col++) {
         if ((row + col) % 2 === 0) {
           const x = this.brickOffsetLeft + col * (this.brickWidth + BRICK_PADDING_X);
           const y = this.brickOffsetTop + row * (this.brickHeight + BRICK_PADDING_Y);
-          this.bricks.push(this.makeBrick(x, y));
+          const brick = this.makeBrick(x, y, settings);
+          this.bricks.push(brick);
         }
       }
     }
   }
 
-  generateDiamond() {
-    const mid = Math.floor(BRICK_ROWS / 2);
-    for (let row = 0; row < BRICK_ROWS; row++) {
+  generateDiamond(settings) {
+    const maxRows = settings.brickRowCount;
+    const mid = Math.floor(maxRows / 2);
+
+    for (let row = 0; row < maxRows; row++) {
       const shrink = Math.abs(mid - row);
       const startCol = shrink;
       const endCol = BRICK_COLS - shrink;
       for (let col = startCol; col < endCol; col++) {
         const x = this.brickOffsetLeft + col * (this.brickWidth + BRICK_PADDING_X);
         const y = this.brickOffsetTop + row * (this.brickHeight + BRICK_PADDING_Y);
-        this.bricks.push(this.makeBrick(x, y));
+        const brick = this.makeBrick(x, y, settings);
+        this.bricks.push(brick);
       }
     }
   }
 
-  generateZigZag() {
-    for (let row = 0; row < BRICK_ROWS; row++) {
+  generateZigZag(settings) {
+    const maxRows = settings.brickRowCount;
+
+    for (let row = 0; row < maxRows; row++) {
       const offset = (row % 2 === 0 ? 0 : Math.floor(this.brickWidth / 2));
       for (let col = 0; col < BRICK_COLS; col++) {
         const x = this.brickOffsetLeft + col * (this.brickWidth + BRICK_PADDING_X) + offset;
         const y = this.brickOffsetTop + row * (this.brickHeight + BRICK_PADDING_Y);
-        this.bricks.push(this.makeBrick(x, y));
+        const brick = this.makeBrick(x, y, settings);
+        this.bricks.push(brick);
       }
     }
   }
 
-  makeBrick(x, y) {
-    return new Brick(x, y, this.brickWidth, this.brickHeight, this.pickBrickColor());
+  makeBrick(x, y, settings) {
+    let maxHits = 1;
+
+    // Determine brick durability based on multi-hit configuration
+    const multiHitConfig = settings.multiHitBricks;
+    const rand = Math.random();
+
+    if (rand < multiHitConfig.threeHitChance) {
+      maxHits = 3;
+    } else if (rand < multiHitConfig.threeHitChance + multiHitConfig.twoHitChance) {
+      maxHits = 2;
+    }
+
+    const brick = new Brick(x, y, this.brickWidth, this.brickHeight,
+      this.pickBrickColor(maxHits), maxHits);
+
+    // Set movement properties based on configuration
+    if (settings.brickMovement.enabled) {
+      brick.isMoving = true;
+      brick.moveSpeed = settings.brickMovement.speed;
+    }
+
+    return brick;
   }
 
-  pickBrickColor() {
-    const palette = [
-      "#00eaff", "#ffee00", "#4ecdc4", "#c084fc", "#ff6bcb",
-      "#ffd93d", "#7fb3ff", "#ffadad", "#ffd6a5", "#fdffb6",
-      "#caffbf", "#9bf6ff", "#bdb2ff", "#ffc6ff", "#f1c40f",
-      "#e67e22", "#bdc3c7", "#95a5a6", "#ecf0f1"
-    ];
+  pickBrickColor(maxHits = 1) {
+    let palette;
+
+    // Different colors based on durability
+    if (maxHits === 1) {
+      palette = [
+        "#00eaff", "#ffee00", "#4ecdc4", "#c084fc", "#ff6bcb",
+        "#ffd93d", "#7fb3ff", "#ffadad", "#ffd6a5", "#fdffb6",
+        "#caffbf", "#9bf6ff", "#bdb2ff", "#ffc6ff"
+      ];
+    } else if (maxHits === 2) {
+      // Stronger colors for 2-hit bricks
+      palette = [
+        "#f1c40f", "#e67e22", "#e74c3c", "#9b59b6", "#3498db"
+      ];
+    } else {
+      // Even stronger colors for 3-hit bricks
+      palette = [
+        "#2c3e50", "#7f8c8d", "#34495e", "#95a5a6"
+      ];
+    }
+
     return palette[Math.floor(Math.random() * palette.length)];
   }
 
   drawBricks(ctx) {
-    for (const brick of this.bricks) brick.draw(ctx);
+    for (const brick of this.bricks) {
+      brick.draw(ctx);
+    }
   }
 }

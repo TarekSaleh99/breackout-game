@@ -24,7 +24,7 @@ export class GameState {
     if (livesElement) livesElement.textContent = this.lives;
   }
 
-  // Lose a life when ball misses the paddle
+  // Lose a life when ball misses the paddle OR when bricks reach bottom
   loseLife() {
     this.lives--;
     this.updateHUD();
@@ -33,7 +33,11 @@ export class GameState {
       this.isGameOver = true;
       this.handleGameOver();
     } else {
-      this.ball.reset(this.paddle);
+      // Only reset ball if it's not already positioned correctly
+      // (this prevents double reset when bricks reach bottom)
+      if (this.ball.y > this.canvas.height * 0.8) {
+        this.ball.reset(this.paddle);
+      }
       if (this.onLifeLost) this.onLifeLost(this.lives);
     }
   }

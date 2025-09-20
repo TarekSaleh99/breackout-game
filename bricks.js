@@ -1,4 +1,5 @@
 // bricks.js
+import { playClickSound } from "./background.js";
 
 // Brick grid parameters (constants)
 export const BRICK_ROWS = 10;
@@ -62,6 +63,7 @@ export class Brick {
       this.isDamaged = true;
       return false; // Not destroyed yet
     } else {
+      playClickSound("Assets/pop-cartoon-328167.mp3");
       // Brick is destroyed
       this.status = 0;
       this.createDestroyEffect();

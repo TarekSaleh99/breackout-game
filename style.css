@@ -174,3 +174,154 @@ button:hover {
     text-align: center;
     text-shadow: 2px 2px #333;
   }
+
+
+  #game-over-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 100;
+  border-radius: 24px;
+  padding: 3rem 2rem 2rem 2rem;
+  /* No backdrop-filter: blur() for unblur effect */
+}
+
+#game-over-text {
+  font-family: 'SpaceNova', cursive;
+  font-size: 9rem;
+  color: #ff0000;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  margin-bottom: 2.5rem;
+  animation: pop-in 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+}
+
+@keyframes pop-in {
+  0% { transform: scale(0.7); opacity: 0; }
+  80% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+#try-again-btn,
+#exit-btn-gameover,
+#exit-btn-win {
+  display: inline-block;
+  margin: 0 1.5rem;
+  font-family: "Press Start 2P", system-ui;
+  font-weight: 400;
+  font-style: normal;
+  background: linear-gradient(180deg, #b0b0b0 0%, #888 100%);
+  color: #fff;
+  font-size: 2rem;
+  padding: 1.5rem 4rem;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  box-shadow: 0 8px 0 #666, 0 12px 24px rgba(0, 0, 0, 0.2);
+  text-shadow: 1px 2px 4px #444;
+  z-index: 10;
+  transition: transform 0.1s, box-shadow 0.1s;
+  animation: pop-in-btn 0.6s cubic-bezier(.68,-0.55,.27,1.55);
+}
+
+@keyframes pop-in-btn {
+  0% { transform: scale(0.7); opacity: 0; }
+  80% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+#try-again-btn:active,
+#exit-btn-gameover:active,
+#exit-btn-win:active {
+  transform: scale(0.98);
+  box-shadow: 0 4px 0 #666, 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+
+#win-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 100;
+  border-radius: 24px;
+  padding: 3rem 2rem 2rem 2rem;
+}
+
+#win-text {
+  font-family: 'SpaceNova', cursive;
+  font-size: 9rem;
+  color: green;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  margin-bottom: 2.5rem;
+  animation: pop-in 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+}
+
+#next-level-btn {
+  display: inline-block;
+  margin: 0 1.5rem;
+  font-family: "Press Start 2P", system-ui;
+  font-weight: 400;
+  font-style: normal;
+  background: linear-gradient(180deg, #b0b0b0 0%, #888 100%);
+  color: #fff;
+  font-size: 2rem;
+  padding: 1.5rem 4rem;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  box-shadow: 0 8px 0 #666, 0 12px 24px rgba(0, 0, 0, 0.2);
+  text-shadow: 1px 2px 4px #444;
+  z-index: 10;
+  transition: transform 0.1s, box-shadow 0.1s;
+  animation: pop-in-btn 0.6s cubic-bezier(.68,-0.55,.27,1.55);
+  margin-bottom: 15px;
+}
+
+#next-level-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 4px 0 #666, 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+
+
+
+
+
+/* Lives lost animation */
+#lives-anim {
+  position: absolute;
+  left: 50%;
+  top: 20%;
+  transform: translate(-50%, -100px);
+  font-family: 'Press Start 2P', system-ui;
+  font-size: 2.5rem;
+  color: #ff3a3a;
+  padding: 0.5em 1.5em;
+  border-radius: 16px;
+  opacity: 0;
+  z-index: 200;
+  pointer-events: none;
+  animation: lives-slide 1.2s cubic-bezier(.68,-0.55,.27,1.55);
+}
+
+@keyframes lives-slide {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -100px);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-10%, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(120%, -100px);
+  }
+}

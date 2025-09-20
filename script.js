@@ -167,20 +167,42 @@ function checkWinCondition() {
     
     if (result.success) {
       // Move to next level
-      alert(result.message);
+      document.getElementById("win-container").style.display = "block";
+      canvas.style.display = "none";
       
-      // Generate new bricks with updated settings
-      brickManager.generateBricks(result.settings);
+      document.getElementById("next-level-btn").addEventListener("click", function () {
+        playClickSound();
+        document.getElementById("win-container").style.display = "none";
+        canvas.style.display = "block";
+        // Generate new bricks with updated settings
+        brickManager.generateBricks(result.settings);
       
-      // Update ball speed
-      gameState.ball.setSpeedFromConfig(result.settings);
+        // Update ball speed
+        gameState.ball.setSpeedFromConfig(result.settings);
       
-      gameState.resetRound();
-      gameLoop(); // Restart game loop for next level
+        gameState.resetRound();
+        gameLoop(); // Restart game loop for next level
+
+      });
+
+
     } else {
       // Difficulty completed
-      alert(result.message);
-      backToMenu();
+      document.getElementById("win-container").style.display = "block";
+      canvas.style.display = "none";
+      
+      
+      document.getElementById("win-text").textContent = "All levels completed!";
+      document.getElementById("next-level-btn").style.display = "none"; // hide next level button
+      
+
+      //issue 1 solve:
+      // exit-btn-win
+      document.getElementById("exit-btn-win").addEventListener("click", () => {
+        playClickSound();
+        backToMenu();
+      });
+
     }
     return true;
   }
@@ -193,13 +215,14 @@ function checkBricksReachedBottom() {
   if (brickManager.checkGameOver()) {
     // Lose a life but continue playing
     gameState.loseLife();
-    
+
     // Reset all remaining bricks to their original positions
     const resetCount = brickManager.resetBrickPositions();
     
     // Show message to player
     if (gameState.lives > 0) {
-      alert(`Bricks reached the bottom! Life lost. ${resetCount} bricks reset to original positions.`);
+      gameState.showLivesLostAnimation();
+      //alert(`Bricks reached the bottom! Life lost. ${resetCount} bricks reset to original positions.`);
     }
     
     return true; // Bricks reached bottom
@@ -210,10 +233,17 @@ function checkBricksReachedBottom() {
 // === Back to Menu ===
 function backToMenu() {
   gameState.isGameOver = true;
+
+  document.getElementById("game-over-container").style.display = "none";
+  //second line related to issue 1 :
+  document.getElementById("win-container").style.display = "none";  
+  document.getElementById("menu-container").style.display = "block";
   document.getElementById("start-game-btn").style.display = "inline-block";
   document.getElementById("difficulty-button").style.display = "flex";
-  document.getElementById("gameName").style.display = "block";
   document.getElementById("canvas-toggle-btn").style.display = "inline-block";
+  document.getElementById("gameName").style.display = "block";
+  canvas.style.display = "none";
+  
   
   // Reset game state
   score = 0;
@@ -287,16 +317,19 @@ function applyPowerUp(type) {
 
   switch (type) {
     case "expand":
+      playClickSound("Assets/powerup2.wav");
       paddle.width *= 1.5;
       setTimeout(() => paddle.width /= 1.5, 10000); // back after 10s
       break;
 
     case "shrink":
+      playClickSound("Assets/powerdown.wav");
       paddle.width *= 0.7;
       setTimeout(() => paddle.width /= 0.7, 10000);
       break;
 
     case "extraLife":
+      playClickSound("Assets/powerup1.wav");
       gameState.lives++;
       gameState.updateHUD();
       break;
@@ -319,6 +352,7 @@ document.getElementById("start-game-btn").addEventListener("click", function () 
   hideButtonById("gameName");
   hideButtonById("canvas-toggle-btn");   //  hide toggle button
   playClickSound();
+  canvas.style.display = "block";
 
   // Initialize game with selected difficulty
   const selectedDifficulty = difficultySelector.getValue();
@@ -348,6 +382,31 @@ document.getElementById("start-game-btn").addEventListener("click", function () 
   
   gameLoop();
 });
+
+
+
+//here where issue 1 was third change
+document.getElementById("exit-btn-gameover").addEventListener("click", () => {
+  playClickSound();
+  backToMenu();
+});
+
+
+document.getElementById("exit-btn-win").addEventListener("click", () => {
+  playClickSound();
+  backToMenu();
+});
+
+
+document.getElementById("try-again-btn").addEventListener("click", function () {
+  playClickSound();
+  document.getElementById("game-over-container").style.display = "none";
+  canvas.style.display = "block";
+  score = 0;
+  document.getElementById("score").textContent = score;
+  document.getElementById("start-game-btn").click();
+});
+
 
 // change mode button 
 const toggleBtn = document.getElementById("canvas-toggle-btn");

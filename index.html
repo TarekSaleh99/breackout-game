@@ -20,19 +20,32 @@
   <audio id="bg" src="Assets/Pixel Peeker Polka.mp3" loop muted></audio>
   <img id="speaker-btn" src="Assets/speaker-off.png" alt="Speaker Button">
 
-  <div>
+  <div id="menu-container">
     <h1 id="gameName">BREAKOUT</h1>
     <!-- Start Game Button -->
     <button id="start-game-btn">Start Game</button>
-    
+
     <!-- Difficulty Selection -->
     <div id="difficulty-button" class="difficulty-container">
       <div class="arrow" id="left">◀</div>
       <div class="difficulty-text" id="difficulty"></div>
       <div class="arrow" id="right">▶</div>
-      
+
     </div>
   </div>
+
+  <div id="game-over-container" style="display:none;">
+    <h1 id="game-over-text">GAME OVER</h1>
+    <button id="try-again-btn">Try Again</button>
+    <button id="exit-btn-gameover">Exit</button>
+  </div>
+
+  <div id="win-container" style="display:none;">
+    <h1 id="win-text">YOU WIN!</h1>
+    <button id="next-level-btn">Move to Next Level</button>
+    <button id="exit-btn-win">Exit</button>
+  </div>
+
 
   <!-- Change canvas mode Button-->
   <button id="canvas-toggle-btn">Canvas change mode</button>

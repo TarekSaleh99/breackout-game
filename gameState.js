@@ -28,6 +28,7 @@ export class GameState {
   loseLife() {
     this.lives--;
     this.updateHUD();
+    this.showLivesLostAnimation();
 
     if (this.lives <= 0) {
       this.isGameOver = true;
@@ -51,7 +52,35 @@ export class GameState {
 
   // Trigger game over callback
   handleGameOver() {
-    alert("Game Over");
-    if (this.onGameOver) this.onGameOver();
+    const gameOverContainer = document.getElementById("game-over-container");
+    const startGameContainer = document.getElementById("menu-container");
+
+    if (gameOverContainer) {
+      gameOverContainer.style.display = "block";
+    }
+    if (this.canvas) {
+      this.canvas.style.display = "none";
+    }
+    if (startGameContainer) {
+      startGameContainer.style.display = "none";
+    }
   }
+
+  // Show "-1 Life" animation
+  showLivesLostAnimation() {
+  // Remove any existing animation element
+  const oldAnim = document.getElementById("lives-anim");
+  if (oldAnim) oldAnim.remove();
+
+  // Create new animation element
+  const anim = document.createElement("div");
+  anim.id = "lives-anim";
+  anim.textContent = "Lives -1";
+  document.body.appendChild(anim);
+
+  // Remove after animation completes (1.2s)
+  setTimeout(() => {
+    anim.remove();
+  }, 1200);
+}
 }

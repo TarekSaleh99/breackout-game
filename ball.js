@@ -17,7 +17,7 @@ export class Ball {
     this.gameState = gameState;
 
     // Base speed properties for difficulty system
-    this.baseSpeed = 8; // Your original speed
+    this.baseSpeed = 5; // Your original speed
     this.currentSpeedMultiplier = 1; // Will be set by difficulty system
 
     // start position relative to paddle

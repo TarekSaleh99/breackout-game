@@ -204,7 +204,8 @@ button:hover {
 }
 
 #try-again-btn,
-#exit-btn {
+#exit-btn-gameover,
+#exit-btn-win {
   display: inline-block;
   margin: 0 1.5rem;
   font-family: "Press Start 2P", system-ui;
@@ -231,13 +232,11 @@ button:hover {
 }
 
 #try-again-btn:active,
-#exit-btn:active {
+#exit-btn-gameover:active,
+#exit-btn-win:active {
   transform: scale(0.98);
   box-shadow: 0 4px 0 #666, 0 8px 16px rgba(0, 0, 0, 0.2);
 }
-
-
-
 
 
 #win-container {

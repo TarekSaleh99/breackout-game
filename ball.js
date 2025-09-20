@@ -1,3 +1,6 @@
+import { playClickSound } from "./background.js";
+
+
 const colorArray = [    //Ball colors
   '#FD8A8A',
   '#eff5abff',
@@ -96,16 +99,19 @@ export class Ball {
 
     // wall collisions (left & right) - Pushing ball to stop ball vibration with wall
     if (this.x + this.radius > this.canvas.width) {
+      playClickSound("Assets/pickaxe-impacting-rock-gamemaster-audio-3-3-00-00.mp3");
       this.x = this.canvas.width - this.radius;
       this.dx = -this.dx;
     }
     if (this.x - this.radius < 0) {
+      playClickSound("Assets/pickaxe-impacting-rock-gamemaster-audio-3-3-00-00.mp3");
       this.x = this.radius;
       this.dx = -this.dx;
     }
 
     // top wall collision
     if (this.y - this.radius < 0) {
+      playClickSound("Assets/pickaxe-impacting-rock-gamemaster-audio-3-3-00-00.mp3");
       this.y = this.radius;
       this.dy = -this.dy;
     }

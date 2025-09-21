@@ -1,7 +1,7 @@
 # 🎮 Breakout Game
 
 ![Made with JavaScript](https://img.shields.io/badge/Made%20with-JavaScript-yellow)  
-![License: MIT](https://img.shields.io/badge/License-MIT-green)  
+
 
 A simple **Breakout clone** built with **HTML, CSS, and Vanilla JavaScript**.  
 Move the paddle, bounce the ball, and destroy all the bricks to win!
@@ -25,7 +25,7 @@ Move the paddle, bounce the ball, and destroy all the bricks to win!
 ### Screenshot
 ![Breakout Screenshot](images/image.jpeg)
 
-![Breakout Screenshot](images/image2.jpeg)
+![Breakout Screenshot](images/image2.png)
 
 
 ---
@@ -114,13 +114,8 @@ Contributions are welcome! 🎉
 
 ---
 
-## 📜 License
-
-This project is licensed under the **MIT License** – feel free to use, modify, and share.  
-
----
-
 ## 🙌 Acknowledgments
 
 Inspired by the classic **Atari Breakout** game.  
+Special thanks to our supervisor **Mahmoud El-Basha** for guiding us and pushing us to finish this project 🙏
 Made for fun and learning 🎮  

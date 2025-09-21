@@ -2,14 +2,13 @@ import { Paddle } from "./Paddle.js";
 import { Ball } from "./ball.js";
 
 export class GameState {
-  constructor(canvas, initialLives = 3, { onGameOver, onLifeLost } = {}) {
+  constructor(canvas, initialLives = 3, { onGameOver } = {}) {
     this.canvas = canvas;
     this.lives = initialLives;
     this.isGameOver = false;
 
     // callbacks
     this.onGameOver = onGameOver;
-    this.onLifeLost = onLifeLost;
 
     // create paddle and ball
     this.paddle = new Paddle(canvas);

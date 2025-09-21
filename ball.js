@@ -51,38 +51,6 @@ export class Ball {
     console.log(`Ball speed updated: ${this.baseSpeed} * ${this.currentSpeedMultiplier} = ${this.speed}`);
   }
 
-  // Legacy method for direct speed setting (maintains compatibility)
-  setSpeed(difficulty, level) {
-    let speedMultiplier = 1;
-    
-    switch (difficulty) {
-      case "Easy":
-        // Level 1: 1x, Level 2: 1.2x, Level 3: 1.4x
-        speedMultiplier = 1 + ((level - 1) * 0.2);
-        break;
-        
-      case "Medium":
-        // Level 1: 1.3x, Level 2: 1.6x, Level 3: 1.9x
-        speedMultiplier = 1.3 + ((level - 1) * 0.3);
-        break;
-        
-      case "Hard":
-        // Level 1: 1.5x, Level 2: 2.0x, Level 3: 2.5x
-        speedMultiplier = 1.5 + ((level - 1) * 0.5);
-        break;
-    }
-    
-    this.currentSpeedMultiplier = speedMultiplier;
-    this.speed = this.baseSpeed * speedMultiplier;
-    
-    // Update dx and dy to maintain the new speed
-    const currentMagnitude = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
-    if (currentMagnitude > 0) {
-      this.dx = (this.dx / currentMagnitude) * this.speed;
-      this.dy = (this.dy / currentMagnitude) * this.speed;
-    }
-  }
-
   draw() {
     this.ctx.beginPath();
     this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);  //Draw a full circle

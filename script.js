@@ -154,61 +154,66 @@ function handleBallBrickCollisions() {
       }
     }
   }
-}
+}// === Win condition ===
+let gameLoopId; // store requestAnimationFrame ID globally
 
-// === Win condition ===
 function checkWinCondition() {
-  // check if all bricks are destroyed 
-  // (every) return true if all item meets the condition
+  // check if all bricks are destroyed
   const allCleared = brickManager.bricks.every(brick => brick.status === 0);
+
   if (allCleared) {
     // Try to advance to next level
     const result = gameConfigManager.advanceLevel();
-    
+
     if (result.success) {
-      // Move to next level
+      // Show win container, hide game canvas
       document.getElementById("win-container").style.display = "block";
       canvas.style.display = "none";
-      
-      document.getElementById("next-level-btn").addEventListener("click", function () {
+
+      // ✅ reset "Next Level" button
+      const nextBtn = document.getElementById("next-level-btn");
+      nextBtn.style.display = "inline-block";
+      nextBtn.onclick = () => {
         playClickSound();
+
         document.getElementById("win-container").style.display = "none";
         canvas.style.display = "block";
+
         // Generate new bricks with updated settings
         brickManager.generateBricks(result.settings);
-      
-        // Update ball speed
-        gameState.ball.setSpeedFromConfig(result.settings);
-      
+
+        // Reset paddle & ball, update ball speed
         gameState.resetRound();
-        gameLoop(); // Restart game loop for next level
+        gameState.ball.setSpeedFromConfig(result.settings);
 
-      });
-
+        // ✅ Prevent multiple loops
+        if (gameLoopId) {
+          cancelAnimationFrame(gameLoopId);
+        }
+        gameLoop(); // restart loop for next level
+      };
 
     } else {
-      // Difficulty completed
+      // All inner levels of current difficulty completed
       document.getElementById("win-container").style.display = "block";
       canvas.style.display = "none";
-      
-      
+
       document.getElementById("win-text").textContent = "All levels completed!";
       document.getElementById("next-level-btn").style.display = "none"; // hide next level button
-      
 
-      //issue 1 solve:
-      // exit-btn-win
-      document.getElementById("exit-btn-win").addEventListener("click", () => {
+      // ✅ ensure only one exit handler
+      const exitBtn = document.getElementById("exit-btn-win");
+      exitBtn.onclick = () => {
         playClickSound();
         backToMenu();
-      });
-
-
+      };
     }
     return true;
   }
   return false;
 }
+
+
 
 // === Check game over conditions ===
 function checkBricksReachedBottom() {
@@ -222,12 +227,7 @@ function checkBricksReachedBottom() {
     
     // Show message to player
     if (gameState.lives > 0) {
-
       gameState.showLivesLostAnimation();
-
-      showLivesLostAnimation();
-
-      //alert(`Bricks reached the bottom! Life lost. ${resetCount} bricks reset to original positions.`);
     }
     
     return true; // Bricks reached bottom

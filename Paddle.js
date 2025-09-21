@@ -15,6 +15,7 @@ export class Paddle {
 
     this.rightPressed = false;
     this.leftPressed = false;
+    this.mouseInsideCanvas = false;
 
     this.setupInput();
   }
@@ -70,18 +71,33 @@ export class Paddle {
     document.addEventListener("mousemove", (e) => {
       const rect = this.canvas.getBoundingClientRect();
       const relativeX = e.clientX - rect.left;
-      if (relativeX > 0 && relativeX < this.canvas.width) {
+      const relativeY = e.clientY - rect.top;
+      
+      // Check if mouse is inside canvas bounds
+      if (relativeX > 0 && relativeX < this.canvas.width && 
+          relativeY > 0 && relativeY < this.canvas.height) {
+        this.mouseInsideCanvas = true;
         this.x = relativeX - this.width / 2;
+      } else {
+        this.mouseInsideCanvas = false;
       }
+    });
+
+    // Stop paddle movement when mouse leaves canvas
+    document.addEventListener("mouseleave", () => {
+      this.mouseInsideCanvas = false;
     });
   }
 
   // Update paddle position
   update() {
+    // Keyboard controls work simultaneously with mouse when mouse is inside canvas
+    // Keyboard controls work alone when mouse is outside canvas
+    const keyboardSpeed = this.speed * 2; // Make keyboard 2x faster
     if (this.rightPressed) {
-      this.x += this.speed;
+      this.x += keyboardSpeed;
     } else if (this.leftPressed) {
-      this.x -= this.speed;
+      this.x -= keyboardSpeed;
     }
     this.clamp();
   }

@@ -434,3 +434,15 @@ pauseBtn.addEventListener("click", () => {
     requestAnimationFrame(gameLoop);
   }
 });
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    gameState.isPaused = !gameState.isPaused;
+    pauseBtn.textContent = gameState.isPaused ? "Play" : "Pause";
+
+    // if unpausing, restart game loop
+    if (!gameState.isPaused) {
+      requestAnimationFrame(gameLoop);
+    }
+  }
+});

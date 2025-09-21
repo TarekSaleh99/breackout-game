@@ -1,8 +1,7 @@
 import { BrickManager } from "./bricks.js";
 import { GameState } from "./gameState.js";
 import { animate, setupAudio, createCircles, hideButtonById, playClickSound } from "./background.js";
-import { DifficultySelector, GameConfigManager } from "./difficulty.js"; 
-//import powerups
+import { DifficultySelector, GameConfigManager } from "./difficulty.js";
 import { PowerUp } from "./powerups.js";
 
 //declare power-ups array
@@ -66,7 +65,7 @@ function resizeCanvas() {
 
   // Update bricks size/position only, keep same layout
   brickManager.resize(canvas);
-  
+
   // reposition paddle & ball at bottom
   gameState.resetRound();
 }
@@ -111,7 +110,7 @@ function handleBallBrickCollisions() {
     if (circleRectCollision(ball, brick)) {
       // Hit the brick and check if it's destroyed
       const isDestroyed = brick.hit();
-      
+
       // Calculate score based on brick durability and difficulty multiplier
       const basePoints = isDestroyed ? (10 * brick.maxHits) : 5;
       const pointsEarned = Math.floor(basePoints * currentSettings.scoringMultiplier);
@@ -128,9 +127,9 @@ function handleBallBrickCollisions() {
       const dx = ball.x - closestX;
       const dy = ball.y - closestY;
 
-      if (Math.abs(dx) > Math.abs(dy)){
+      if (Math.abs(dx) > Math.abs(dy)) {
         ball.dx = -ball.dx;
-         // push ball outside horizontally
+        // push ball outside horizontally
         ball.x = dx > 0 ? brick.x + brick.width + ball.radius : brick.x - ball.radius;
       } else {
         ball.dy = -ball.dy;
@@ -168,7 +167,9 @@ function checkWinCondition() {
     if (result.success) {
       // Show win container, hide game canvas
       document.getElementById("win-container").style.display = "block";
+      document.getElementById("pauseBtn").style.display = "none";
       canvas.style.display = "none";
+      document.getElementById("win-text").textContent = "YOU WON!";
 
       // ✅ reset "Next Level" button
       const nextBtn = document.getElementById("next-level-btn");
@@ -177,6 +178,7 @@ function checkWinCondition() {
         playClickSound();
 
         document.getElementById("win-container").style.display = "none";
+        document.getElementById("pauseBtn").style.display = "inline-block";
         canvas.style.display = "block";
 
         // Generate new bricks with updated settings
@@ -196,6 +198,7 @@ function checkWinCondition() {
     } else {
       // All inner levels of current difficulty completed
       document.getElementById("win-container").style.display = "block";
+      document.getElementById("pauseBtn").style.display = "none";
       canvas.style.display = "none";
 
       document.getElementById("win-text").textContent = "All levels completed!";
@@ -224,12 +227,12 @@ function checkBricksReachedBottom() {
 
     // Reset all remaining bricks to their original positions
     const resetCount = brickManager.resetBrickPositions();
-    
+
     // Show message to player
     if (gameState.lives > 0) {
       gameState.showLivesLostAnimation();
     }
-    
+
     return true; // Bricks reached bottom
   }
   return false;
@@ -241,23 +244,23 @@ function backToMenu() {
 
   document.getElementById("game-over-container").style.display = "none";
 
-  //second line related to issue 1 :
-  document.getElementById("win-container").style.display = "none";  
+  document.getElementById("pauseBtn").style.display = "none"; // 🔹 Hide pause button
+  document.getElementById("win-container").style.display = "none";
   document.getElementById("menu-container").style.display = "block";
   document.getElementById("start-game-btn").style.display = "inline-block";
   document.getElementById("difficulty-button").style.display = "flex";
   document.getElementById("canvas-toggle-btn").style.display = "inline-block";
   document.getElementById("gameName").style.display = "block";
   canvas.style.display = "none";
-  
-  
+
+
   // Reset game state
   score = 0;
   document.getElementById("score").textContent = score;
-  
+
   // Reset configuration manager
   gameConfigManager.reset();
-  
+
   // Clear power-ups
   powerUps = [];
 }
@@ -265,15 +268,16 @@ function backToMenu() {
 // === Game Loop ===
 function gameLoop() {
   if (gameState.isGameOver) return;
+  if (gameState.isPaused) return;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Update bricks first
   brickManager.update();
-  
+
   // Check if bricks reached bottom (loses life but continues game)
   checkBricksReachedBottom();
-  
+
   // Check if game is over after potential life loss
   if (gameState.isGameOver) return;
 
@@ -290,7 +294,7 @@ function gameLoop() {
   ball.update(paddle);
   handleBallBrickCollisions();
   ball.draw();
-  
+
   //  Power-ups
   for (let pu of powerUps) {
     pu.update();
@@ -312,7 +316,7 @@ function gameLoop() {
     }
   }
   powerUps = powerUps.filter(p => p.active);
-   
+
   if (checkWinCondition()) return;
   requestAnimationFrame(gameLoop);
 }
@@ -359,14 +363,15 @@ document.getElementById("start-game-btn").addEventListener("click", function () 
   hideButtonById("canvas-toggle-btn");   //  hide toggle button
   playClickSound();
   canvas.style.display = "block";
+  document.getElementById("pauseBtn").style.display = "inline-block";
 
   // Initialize game with selected difficulty
   const selectedDifficulty = difficultySelector.getValue();
   gameConfigManager.initialize(selectedDifficulty);
-  
+
   // Get current settings
   const currentSettings = gameConfigManager.getCurrentSettings();
-  
+
   console.log("Starting game with settings:", currentSettings);
 
   // Create new game state
@@ -376,34 +381,28 @@ document.getElementById("start-game-btn").addEventListener("click", function () 
 
   // Generate bricks with current settings
   brickManager.generateBricks(currentSettings);
-  
+
   // Set ball speed
   gameState.ball.setSpeedFromConfig(currentSettings);
-  
+
   gameState.resetRound();
-  
+
   // reset score at start of game
   score = 0;
   document.getElementById("score").textContent = score;
-  
+
   gameLoop();
 });
 
-
-
-
-//here where issue 1 was third change
 document.getElementById("exit-btn-gameover").addEventListener("click", () => {
   playClickSound();
   backToMenu();
 });
 
-
 document.getElementById("exit-btn-win").addEventListener("click", () => {
   playClickSound();
   backToMenu();
 });
-
 
 
 document.getElementById("try-again-btn").addEventListener("click", function () {
@@ -422,4 +421,16 @@ toggleBtn.addEventListener("click", () => {
   isFullscreen = !isFullscreen;   // toggle mode
   resizeCanvas();                  // apply changes
   playClickSound();
+});
+
+const pauseBtn = document.getElementById("pauseBtn");
+
+pauseBtn.addEventListener("click", () => {
+  gameState.isPaused = !gameState.isPaused;
+  pauseBtn.textContent = gameState.isPaused ? "Play" : "Pause";
+
+  // if unpausing, restart game loop
+  if (!gameState.isPaused) {
+    requestAnimationFrame(gameLoop);
+  }
 });

@@ -14,11 +14,15 @@
     <span>Score <span id="score">0</span></span>
     <span>Lives <span id="lives">3</span></span>
     <span>Highest Score <span id="highScore">0</span></span>
+
   </div>
 
   <canvas id="background"></canvas>
   <audio id="bg" src="Assets/Pixel Peeker Polka.mp3" loop muted></audio>
-  <img id="speaker-btn" src="Assets/speaker-off.png" alt="Speaker Button">
+  <div id="left-corner">
+    <img id="speaker-btn" src="Assets/speaker-off.png" alt="Speaker Button">
+    <button id="pauseBtn" style="display:none;">Pause</button>
+  </div>
 
   <div id="menu-container">
     <h1 id="gameName">BREAKOUT</h1>

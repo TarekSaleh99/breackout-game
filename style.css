@@ -11,7 +11,7 @@ body {
 }
 
 @font-face {
-  font-family: 'SpaceNova';              /* The name you’ll use in CSS/JS */
+  font-family: 'SpaceNova';
   src: url('Fonts/SpaceNova-6Rpd1.otf') format('truetype');
   font-weight: normal;
   font-style: normal;
@@ -21,13 +21,14 @@ body {
   font-size: 9rem;
   text-align: center;
   margin-top: 8%;
-  color: #3abaec; /* Green color */
+  color: #3abaec;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 .scores {
   display: flex;
   gap: 20px;
   justify-content: center;
+  margin-top: 2px;
   padding: 10px;
   font-family: "Press Start 2P", system-ui;
   font-weight: 400;
@@ -44,7 +45,7 @@ body {
   top: 0;
   left: 0;
   z-index: 1; 
-  box-sizing: border-box; /* important so border doesn't increase size */
+  box-sizing: border-box; /* border doesn't increase size */
   transition: border 0.3s, border-radius 0.3s, box-shadow 0.3s; /* smooth transitions */
 }
 
@@ -80,7 +81,7 @@ button:hover {
   top: 0;
   left: 0;
   z-index: 0; /* Lower z-index */
-  pointer-events: none; /* So clicks go through */
+  pointer-events: none; /* clicks go through */
 
 }
 
@@ -110,24 +111,39 @@ button:hover {
   box-shadow: 0 4px 0 #666, 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-#speaker-btn {
+#left-corner {
   position: absolute;
   top: 20px;
   left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px; /* space between buttons */
+  z-index: 30;
+}
+
+#speaker-btn {
   width: 40px;
   height: 40px;
   cursor: pointer;
   user-select: none;
-  z-index: 20; /* Add this line */
 }
 
+#pauseBtn {
+  padding: 6px 12px;
+  font-size: 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #0b365e;
+  color: white;
+  border: none;
+}
 
 #canvas-toggle-btn {
   position: absolute;
   top: 20px;
   right: 20px;
   padding: 6px 12px;      /* small size */
-  font-size: 0.9rem;      /* smaller text */
+  font-size: 18px;
   border-radius: 6px;
   cursor: pointer;
   z-index: 30;            /* above everything */
@@ -139,7 +155,7 @@ button:hover {
 
 .difficulty-container {
   z-index: 20;
-  position: absolute; /* Change from relative to absolute */
+  position: absolute;
   left: 50%;
   top: calc(50% + 100px); /* Position below the start button, adjust as needed */
   transform: translate(-50%, 0);
@@ -185,7 +201,6 @@ button:hover {
   z-index: 100;
   border-radius: 24px;
   padding: 3rem 2rem 2rem 2rem;
-  /* No backdrop-filter: blur() for unblur effect */
 }
 
 #game-over-text {
@@ -284,11 +299,6 @@ button:hover {
   transform: scale(0.98);
   box-shadow: 0 4px 0 #666, 0 8px 16px rgba(0, 0, 0, 0.2);
 }
-
-
-
-
-
 
 /* Lives lost animation */
 #lives-anim {

@@ -29,7 +29,7 @@ export class Paddle {
     ctx.strokeStyle = "#191cd6ff";
     ctx.lineWidth = 4;
     ctx.beginPath();
-    // Use roundRect if supported; fallback will throw in old browsers
+    // Use roundRect
     if (typeof ctx.roundRect === "function") {
       ctx.roundRect(this.x, this.y, this.width, this.height, 30);
     } else {

@@ -13,6 +13,7 @@ export class GameState {
     // create paddle and ball
     this.paddle = new Paddle(canvas);
     this.ball = new Ball(canvas, this.paddle, this);
+    this.isPaused = false;
 
     this.updateHUD();
   }
@@ -56,6 +57,7 @@ export class GameState {
 
     if (gameOverContainer) {
       gameOverContainer.style.display = "block";
+      document.getElementById("pauseBtn").style.display = "none";
     }
     if (this.canvas) {
       this.canvas.style.display = "none";

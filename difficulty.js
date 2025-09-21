@@ -19,7 +19,7 @@ const DIFFICULTY_CONFIG = {
   
   "Medium": {
     maxLevels: 3,
-    ballSpeedMultipliers: [1.3, 1.6, 1.9],
+    ballSpeedMultipliers: [1.4, 1.5, 1.6],
     brickMovement: {
       enabled: true,
       baseSpeeds: [0.05, 0.1, 0.15] // Slow to moderate movement
@@ -34,15 +34,15 @@ const DIFFICULTY_CONFIG = {
   
   "Hard": {
     maxLevels: 3,
-    ballSpeedMultipliers: [1.5, 2.0, 2.5],
+    ballSpeedMultipliers: [1.6, 1.65, 1.7],
     brickMovement: {
       enabled: true,
-      baseSpeeds: [0.15, 0.18, 0.21] // Moderate to fast movement
+      baseSpeeds: [0.16, 0.17, 0.18] // Moderate to fast movement
     },
     multiHitBricks: {
       enabled: true,
       level2: { twoHit: 0.3, threeHit: 0 }, // 30% two-hit bricks
-      level3: { twoHit: 0.3, threeHit: 0.1 } // 30% two-hit, 20% three-hit
+      level3: { twoHit: 0.3, threeHit: 0.1 } // 30% two-hit, 10% three-hit
     },
     baseRows: 5,
   }
@@ -101,7 +101,7 @@ export class DifficultySelector {
   }
 }
 
-// Level Manager Class - handles level progression and configuration
+// handling level progression and configuration
 export class LevelManager {
   constructor() {
     this.currentDifficulty = "Easy";
@@ -188,8 +188,8 @@ export class LevelManager {
   getScoringMultiplier() {
     const multipliers = {
       "Easy": 1.0,
-      "Medium": 1.5,
-      "Hard": 2.0
+      "Medium": 1.0,
+      "Hard": 1.0
     };
     return multipliers[this.currentDifficulty] || 1.0;
   }

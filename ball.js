@@ -1,6 +1,5 @@
 import { playClickSound } from "./background.js";
 
-
 const colorArray = [    //Ball colors
   '#FD8A8A',
   '#eff5abff',
@@ -11,6 +10,7 @@ const colorArray = [    //Ball colors
 
 export class Ball {
   constructor(canvas, paddle, gameState, radius = 23) {  //Constructor: called for every new ball
+
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");  //Drawing the ball
     this.radius = radius;
@@ -26,6 +26,7 @@ export class Ball {
 
     // Initialize with base speed
     this.speed = this.baseSpeed;
+
     //Make the ball start at a random angle slightly right or left
     const startAngle = (Math.random() - 0.5) * 0.5; // -0.25 to +0.25
     this.dx = startAngle * this.speed;  //  Small left or right angle
@@ -71,6 +72,7 @@ export class Ball {
       this.x = this.canvas.width - this.radius;
       this.dx = -this.dx;
     }
+    
     if (this.x - this.radius < 0) {
       playClickSound("Assets/pickaxe-impacting-rock-gamemaster-audio-3-3-00-00.mp3");
       this.x = this.radius;
